@@ -1,196 +1,267 @@
-﻿using Domain.DTO.CandDocs;
+﻿using Infrastructure.Services.CandDocs;
+using Domain.DTO.CandDocs;
 using Domain.Entities.CandDocs;
 using Domain.InterfacesServices.CandDocs;
 using Domain.InterfacesStores.CandDocs;
+using System.Text.RegularExpressions;
 using Domain.Models.CandDocs;
+using Quartz.Util;
+using System;
+using Infrastructure.Context;
 
-public class UploadBatchHandler : IRequestHandler<UploadBatchRequestDTO, UploadBatchResultDTO>
+namespace Application.Features.CandDocs.Commands
 {
-    private readonly IPdfSplitService _pdfService;                 // For splitting pages
-    private readonly ITesseractService _ocr;                 // OCR service
-    private readonly ICandidateRepository _repo;            // Save DB records
-    private readonly IFileStore _fileStore;                 // Folder management
-    private readonly IDocumentValidator _validator;         // Validation rules
-    private readonly string _uploadedBy;
-
-    public UploadBatchHandler(
-        IPdfSplitService pdfService,
-        ITesseractService ocr,
-        ICandidateRepository repo,
-        IFileStore fileStore,
-        IDocumentValidator validator)
+    public class UploadBatchHandler
     {
-        _pdfService = pdfService;
-        _ocr = ocr;
-        _repo = repo;
-        _fileStore = fileStore;
-        _validator = validator;
-        _uploadedBy = "system"; // Replace with real user when available
-    }
+        private readonly IFileStore _fileStore;
+        private readonly ITesseractService _ocr;
+        private readonly ICandidateRepository _repo;
+        private readonly ICandidateParser _candidateParser;
+        private readonly FsContext _db;
 
-    public async Task<UploadBatchResultDTO> Handle(UploadBatchRequestDTO command, CancellationToken cancellationToken)
-    {
-        var result = new UploadBatchResultDTO();
-        result.SavedFilePaths = new List<string>();
-
-        string sessionStr = command.ExamYear.ToString();
-        string examStr = command.ExamCode.ToString();
-        string centreStr = command.CentreNumber.ToString();
-
-        // --------------------------------------------------------------------
-        // STEP 1: READ ORIGINAL FILE INTO MEMORY (100% prevents file locking)
-        // --------------------------------------------------------------------
-        if (!File.Exists(command.ServerSourceFilePath))
-            throw new FileNotFoundException("Source file does not exist.", command.ServerSourceFilePath);
-
-        byte[] originalBytes = await File.ReadAllBytesAsync(command.ServerSourceFilePath);
-
-        // --------------------------------------------------------------------
-        // STEP 2: SPLIT PDF INTO PAGES (memory-only)
-        // --------------------------------------------------------------------
-        var pages = await _pdfService.SplitPdfByPageAsync(originalBytes);
-        if (pages.Count == 0)
-            throw new Exception("No PDF pages found.");
-
-        // --------------------------------------------------------------------
-        // STEP 3: PROCESS EACH DOCUMENT (one document = page1 + page2)
-        // --------------------------------------------------------------------
-        int docIndex = 0;
-
-        for (int i = 0; i < pages.Count; i += 2)
+        public UploadBatchHandler(IFileStore fileStore, ITesseractService ocr, ICandidateRepository repo, ICandidateParser candidateParser, FsContext db)
         {
-            byte[] page1 = pages[i];
-            byte[] page2 = (i + 1 < pages.Count ? pages[i + 1] : null);
+            _fileStore = fileStore;
+            _ocr = ocr;
+            _repo = repo;   
+            _candidateParser = candidateParser;
+            _db = db;
+        }
 
-            // ----------------------------------------------------------------
-            // EXTRACT INFORMATION VIA OCR
-            // ----------------------------------------------------------------
-            string textPage1 = await _ocr.ExtractTextFromPdfAsync(page1, 1);
-            string textPage2 = page2 != null
-                ? await _ocr.ExtractTextFromPdfAsync(page2, 1)
-                : "";
-
-            string ocrCombined = textPage1 + "\n" + textPage2;
-
-            // Candidate info extraction  
-            CandidateInfo info = CandidateInfoExtractor.Extract(ocrCombined);
-
-            // ----------------------------------------------------------------
-            // VALIDATE DOCUMENT
-            // ----------------------------------------------------------------
-            string tempSavedFilePath = "(not saved yet)";
-            var validation = _validator.Validate(page1, ocrCombined, info, tempSavedFilePath, command);
-
-            bool isValid = !validation.Errors.Any();
-
-            // ----------------------------------------------------------------
-            // SAVE FILE IN SUCCESS OR ERROR FOLDER
-            // ----------------------------------------------------------------
-            string newPdfName = BuildDocumentFileName(command, info, docIndex);
-
-            if (isValid)
+        public async Task<UploadBatchResult> HandleAsync(UploadBatchRequestDTO request)
+        {
+            string sourceFileName = Path.GetFileName(request.ServerSourceFilePath);
+            var result = new UploadBatchResult
             {
-                // Merge pages (in memory)
-                byte[] merged = await _pdfService.MergeTwoPagesAsync(page1, page2);
-
-                string savedPath = await _fileStore.SaveSuccessFileAsync(
-                    merged, sessionStr, examStr, centreStr, newPdfName);
-
-                tempSavedFilePath = savedPath;
-                result.SavedFilePaths.Add(savedPath);
-            }
-            else
-            {
-                // Only page1 is stored; page2 is irrelevant for error
-                string savedPath = await _fileStore.SaveErrorFileAsync(
-                    page1, sessionStr, examStr, centreStr, newPdfName);
-
-                tempSavedFilePath = savedPath;
-                result.SavedFilePaths.Add(savedPath);
-            }
-
-            // ----------------------------------------------------------------
-            // SAVE DATABASE RECORD
-            // ----------------------------------------------------------------
-            var candDoc = new CandidateDocument
-            {
-                Session = command.ExamYear,
-                CentreCode = command.CentreNumber,
-                CandidateNumber = info.CandidateNumber ?? "",
-                CandidateName = info.CandidateName ?? "",
-                OcrText = ocrCombined,
-                FilePath = tempSavedFilePath,
-                IsValid = isValid,
-                UploadedBy = _uploadedBy,
-                FormCentreCode = info.FormCentreCode
+                SavedFilePaths = new List<string>()
             };
 
-            await _repo.AddAsync(candDoc);
+            await using var tx = await _db.Database.BeginTransactionAsync();
+            try
+            {
 
-            // Save validation errors in DB
-            foreach (var err in validation.Errors)
-                err.CandidateDocumentId = candDoc.Id;
+                // 🔥 1. Detect if file already imported before
+                bool alreadyImported = await _repo.HasBatchBeenImportedAsync(
+                    request.ServerSourceFilePath,
+                    request.ExamYear,
+                    request.ExamCode,
+                    request.CenterNumber);
 
-            if (validation.Errors.Any())
-                await _repo.AddImportErrorsAsync(validation.Errors);
+                // 🔥 2. If previously imported → delete old data + files
+                if (alreadyImported)
+                {
+                    await _repo.DeleteDocumentsForBatchAsync(request.ExamYear, request.ExamCode, request.CenterNumber);
+                    await _fileStore.DeleteBatchFolderAsync(request.ExamYear.ToString(), request.ExamCode, request.CenterNumber);
+                }
 
-            docIndex++;
+                // ----------------------------------------------------------
+                // 1. READ THE ORIGINAL PDF INTO MEMORY (NO FILE LOCKING!)
+                // ----------------------------------------------------------
+                byte[] originalBytes = await File.ReadAllBytesAsync(request.ServerSourceFilePath);
+
+                // ----------------------------------------------------------
+                // 2. SPLIT INTO SINGLE PAGES (PAGE 1 + PAGE 2)
+                // ----------------------------------------------------------
+                var pages = await PdfUtils.SplitPdfByPageAsync(originalBytes);
+
+                int idx = 0;
+
+                for (int i = 0; i < pages.Count; i += 2)
+                {
+                    idx++;
+
+                    byte[] page1 = pages[i];
+                    byte[] page2 = (i + 1 < pages.Count) ? pages[i + 1] : null;
+
+                    // ----------------------------------------------------------
+                    // 3. OCR ONLY PAGE 1 (PERFORMANCE + BETTER ACCURACY)
+                    // ----------------------------------------------------------
+                    string ocrText = await _ocr.ExtractTextFromPdfAsync(page1, 1);
+
+                    // ----------------------------------------------------------
+                    // 4. EXTRACT REAL CANDIDATE INFO USING THE PARSER
+                    // ----------------------------------------------------------
+                    CandidateInfo info = _candidateParser.Parse(ocrText);
+
+                    // ----------------------------------------------------------
+                    // 5. VALIDATION: TRUE VALIDITY BASED ON EXTRACTED DATA
+                    // ----------------------------------------------------------
+                    bool isValid = ValidateExtractedInfo(info, request);
+
+                    // ----------------------------------------------------------
+                    // 6. MERGE PAGE 1 + PAGE 2
+                    // ----------------------------------------------------------
+                    byte[] mergedPdf = await PdfUtils.MergeTwoPagesAsync(page1, page2);
+
+                    string fileName = $"{request.ExamYear}_{request.ExamCode}_{request.CenterNumber}_{idx:D4}.pdf";
+
+                    string savedPath;
+
+                    if (isValid)
+                    {
+                        savedPath = await _fileStore.SaveSuccessFileAsync(
+                            mergedPdf,
+                            request.ExamYear.ToString(),
+                            request.ExamCode,
+                            request.CenterNumber,
+                            fileName
+                        );
+                    }
+                    else
+                    {
+                        savedPath = await _fileStore.SaveErrorFileAsync(
+                            mergedPdf,
+                            request.ExamYear.ToString(),
+                            request.ExamCode,
+                            request.CenterNumber,
+                            fileName
+                        );
+                    }
+
+                    result.SavedFilePaths.Add(savedPath);
+
+                    // ----------------------------------------------------------
+                    // 7. SAVE INTO DATABASE
+                    // ----------------------------------------------------------
+                    var document = new CandidateDocument
+                    {
+                        CandidateNumber = info.CandidateNumber,
+                        CandidateName = info.CandidateName,
+                        CentreCode = info.CentreNumber ?? request.CenterNumber,
+                        FormCentreCode = request.CenterNumber,
+                        Session = info.SessionYear ?? request.ExamYear,
+                        FilePath = savedPath,
+                        OcrText = ocrText,
+                        IsValid = isValid,
+                        CreatedAt = DateTime.UtcNow,
+                        UserId = request.UploadedBy,
+                        ExamCode=request.ExamCode
+                    };
+
+                    await _repo.AddAsync(document);
+
+                    // ----------------------------------------------------------
+                    // 8. IF INVALID, STORE ERROR DETAILS
+                    // ----------------------------------------------------------
+                    if (!isValid)
+                    {
+                        var importError = new ImportError
+                        {
+                            CandidateDocumentId = document.Id,
+                            FilePath = savedPath,
+                            FieldName = "OCR / PARSING",
+                            ErrorType = "ExtractionFailed",
+                            ErrorMessage = BuildErrorMessage(info, request),
+                            Session = request.ExamYear,
+                            UploadedBy = request.UploadedBy.ToString(),
+                            CandidateName=info.CandidateName?? "",
+                            CandidateNumber=info.CandidateNumber ??"",
+                        };
+
+                        await _repo.AddImportErrorsAsync(new[] { importError });
+                    }
+                }
+
+                // ----------------------------------------------------------
+                // 9. MOVE ORIGINAL FILE → imported FOLDER (+ DELETE SOURCE)
+                // ----------------------------------------------------------
+                string importedName =
+                    $"{Path.GetFileNameWithoutExtension(request.ServerSourceFilePath)}_Tr{Path.GetExtension(request.ServerSourceFilePath)}";
+
+                string importedPath = await _fileStore.MoveOriginalImportedPdfAsync(
+                    originalBytes,
+                    request.ExamYear.ToString(),
+                    request.ExamCode,
+                    request.CenterNumber,
+                    importedName
+                );
+
+                if (File.Exists(request.ServerSourceFilePath))
+                    File.Delete(request.ServerSourceFilePath);
+
+                await _repo.LogImportedBatchAsync(sourceFileName, request.ExamYear, request.ExamCode, request.CenterNumber);
+
+                // ----------------------------------------------------------
+                // 10. FINAL RESULT
+                // ----------------------------------------------------------
+                result.ImportedPath = importedPath;
+                result.TotalCandidates = result.SavedFilePaths.Count;
+
+                // Everything OK → commit!
+                await tx.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                throw;  // rethrow for controller to handle
+            }
+
+            return result;
+            
         }
 
-        // --------------------------------------------------------------------
-        // STEP 4: SAVE A COPY IN IMPORTED FOLDER (with _Tr suffix)
-        // --------------------------------------------------------------------
-        string originalName = Path.GetFileNameWithoutExtension(command.ServerSourceFilePath);
-        string originalExt = Path.GetExtension(command.ServerSourceFilePath);
-
-        string importedName = await GenerateUniqueImportedName(
-            sessionStr, examStr, centreStr, originalName, originalExt);
-
-        string importedPath = await _fileStore.MoveOriginalImportedPdfAsync(
-            originalBytes, sessionStr, examStr, centreStr, importedName);
-
-        result.ImportedPath = importedPath;
-
-        // --------------------------------------------------------------------
-        // STEP 5: DELETE ORIGINAL SOURCE FILE (NOW SAFE!)
-        // --------------------------------------------------------------------
-        if (File.Exists(command.ServerSourceFilePath))
-            File.Delete(command.ServerSourceFilePath);
-
-        result.TotalCandidates = result.SavedFilePaths.Count;
-        return result;
-    }
-
-    // ------------------------------------------------------------------------
-    // UTILITY: UNIQUE IMPORTED FILENAME
-    // ------------------------------------------------------------------------
-    private async Task<string> GenerateUniqueImportedName(string session, string exam, string centre, string baseName, string ext)
-    {
-        string folder = _fileStore.GetImportedFolder(session, exam, centre);
-
-        string name = $"{baseName}_Tr{ext}";
-        string path = Path.Combine(folder, name);
-
-        int counter = 1;
-        while (File.Exists(path))
+        private bool ValidateExtractedInfo(CandidateInfo info, UploadBatchRequestDTO req)
         {
-            name = $"{baseName}_Tr{counter}{ext}";
-            path = Path.Combine(folder, name);
-            counter++;
+            if (info == null) return false;
+
+            if (string.IsNullOrWhiteSpace(info.CandidateNumber))
+                return false;
+            if (info.CandidateNumber.Length!=9)
+                return false;
+
+            if (string.IsNullOrWhiteSpace(info.CandidateName))
+                return false;
+
+            if (info.CandidateName.Contains("GENERAL") || info.CandidateName.Contains("CERTIFICATE") || info.CandidateName.Contains("CANDIDATE"))
+            {
+                return false;
+            }
+
+            // Centre number extracted must match uploaded centre (to protect integrity)
+            if (!string.IsNullOrWhiteSpace(info.CentreNumber))
+            {
+                if (info.CentreNumber != req.CenterNumber)
+                    return false;
+            }
+
+            // Valid session? Between 2000 and 2030
+            if (info.SessionYear.HasValue)
+            {
+                if (info.SessionYear < 2000 || info.SessionYear > 2030)
+                    return false;
+
+                if (info.SessionYear != req.ExamYear)
+                    return false;
+            }
+
+            return true;
         }
 
-        return name;
-    }
+        private string BuildErrorMessage(CandidateInfo info, UploadBatchRequestDTO req)
+        {
+            List<string> errors = new();
 
-    // ------------------------------------------------------------------------
-    // UTILITY: FINAL FILE NAME FOR EACH DOCUMENT
-    // ------------------------------------------------------------------------
-    private string BuildDocumentFileName(UploadBatchRequestDTO command, CandidateInfo info, int index)
-    {
-        string cnum = string.IsNullOrWhiteSpace(info.CandidateNumber)
-            ? $"UNK{index}"
-            : info.CandidateNumber;
+            if (string.IsNullOrWhiteSpace(info.CandidateNumber))
+                errors.Add("Candidate Number not detected");
 
-        return $"{command.CentreNumber}_{command.ExamYear}_{cnum}.pdf";
+            if (string.IsNullOrWhiteSpace(info.CandidateName))
+                errors.Add("Candidate Name not detected");
+
+            if (!string.IsNullOrWhiteSpace(info.CentreNumber) &&
+                 info.CentreNumber != req.CenterNumber)
+            {
+                errors.Add($"Centre mismatch: extracted {info.CentreNumber}, expected {req.CenterNumber}");
+            }
+
+            if (info.SessionYear.HasValue &&
+                (info.SessionYear < 2000 || info.SessionYear > 2030))
+            {
+                errors.Add($"Invalid session year: {info.SessionYear}");
+            }
+
+            return string.Join("; ", errors);
+        }
+
+
     }
 }

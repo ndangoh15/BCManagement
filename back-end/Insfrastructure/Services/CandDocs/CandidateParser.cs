@@ -1,17 +1,10 @@
-﻿using Domain.Entities.CandDocs;
-using Domain.InterfacesServices.CandDocs;
+﻿using Domain.InterfacesServices.CandDocs;
 using Domain.Models.CandDocs;
 using Infrastructure.Utils;
-using iText.IO.Util;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 
-namespace Insfrastructure.Services.CandDocs
+namespace Infrastructure.Services.CandDocs
 {
     public class CandidateParser : ICandidateParser
     {

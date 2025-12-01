@@ -9,17 +9,15 @@ namespace Domain.InterfacesStores.CandDocs
 {
     public interface ICandidateRepository
     {
-        Task AddCandidateDocumentAsync(CandidateDocument document);
-        Task UpdateAsync(CandidateDocument document);
-
+        Task<CandidateDocument> AddAsync(CandidateDocument doc);
+        Task UpdateAsync(CandidateDocument doc);
         Task<CandidateDocument?> GetByIdAsync(int id);
-        Task<CandidateDocument?> GetDocumentByIdAsync(int id);
+        Task<List<CandidateDocument>> GetDocumentsAsync(int session, string centre);
+        Task AddImportErrorsAsync(IEnumerable<ImportError> errors);
+        Task<List<CandidateDocument>> SearchAsync(string name, string candidatenumber, string centerNumber);
 
-        Task<List<CandidateDocument>> GetDocumentsAsync(string session, string examCode, string centre);
-
-        Task<List<CandidateDocument>> GetInvalidDocumentsAsync(string session, string examCode, string centre);
-        Task<List<CandidateDocument>> GetValidDocumentsAsync(string session, string examCode, string centre);
-
-        Task DeleteAsync(int id);
+        Task<bool> HasBatchBeenImportedAsync(string fileName, int year, string examCode, string center);
+        Task DeleteDocumentsForBatchAsync(int year, string examCode, string center);
+        Task LogImportedBatchAsync(string fileName, int year, string examCode, string center);
     }
 }

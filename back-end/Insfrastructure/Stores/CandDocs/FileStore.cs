@@ -1,72 +1,90 @@
 ﻿using Domain.InterfacesStores.CandDocs;
-using Microsoft.Extensions.Configuration;
+using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
+
 
 public class FileStore : IFileStore
 {
-    private readonly string _root;
+    public string RootPath { get; }
 
-    public FileStore(IConfiguration config)
+    public FileStore(string rootPath)
     {
-        _root = config["StorageRoot"]!;
+        RootPath = rootPath ?? throw new ArgumentNullException(nameof(rootPath));
     }
 
-    private string Ensure(string path)
+    private string EnsureDir(string folder)
     {
-        if (!Directory.Exists(path))
-            Directory.CreateDirectory(path);
+        if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+        return folder;
+    }
+
+    private string BuildBase(string session, string exam, string centre)
+        => EnsureDir(Path.Combine(RootPath, session, exam, centre));
+
+    public string GetImportedFolder(string session, string exam, string centre)
+        => EnsureDir(Path.Combine(RootPath, session, exam, centre, "imported"));
+
+    public async Task<string> SaveSuccessFileAsync(byte[] bytes, string session, string exam, string centre, string fileName)
+    {
+        var basePath = BuildBase(session, exam, centre);
+        var folder = EnsureDir(Path.Combine(basePath, "success"));
+        var path = Path.Combine(folder, fileName);
+        using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
+            await fs.WriteAsync(bytes, 0, bytes.Length);
         return path;
     }
 
-    public string BuildBasePath(string s, string e, string c)
-        => Path.Combine(_root, s, e, c);
-
-    public string GetImportedFolder(string s, string e, string c)
-        => Ensure(Path.Combine(_root, s, e, c, "imported"));
-
-    public string GetSuccessFolder(string s, string e, string c)
-        => Ensure(Path.Combine(_root, s, e, c, "success"));
-
-    public string GetErrorFolder(string s, string e, string c)
-        => Ensure(Path.Combine(_root, s, e, c, "errors"));
-
-    public async Task<string> SaveSuccessFileAsync(byte[] data, string s, string e, string c, string name)
+    public async Task<string> SaveErrorFileAsync(byte[] bytes, string session, string exam, string centre, string fileName)
     {
-        string f = GetSuccessFolder(s, e, c);
-        string p = Path.Combine(f, name);
-        await File.WriteAllBytesAsync(p, data);
-        return p;
+        var basePath = BuildBase(session, exam, centre);
+        var folder = EnsureDir(Path.Combine(basePath, "errors"));
+        var path = Path.Combine(folder, fileName);
+        using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
+            await fs.WriteAsync(bytes, 0, bytes.Length);
+        return path;
     }
 
-    public async Task<string> MoveOriginalImportedPdfAsync(byte[] data, string s, string e, string c, string name)
+    public async Task<string> MoveOriginalImportedPdfAsync(byte[] bytes, string session, string exam, string centre, string fileName)
     {
-        string f = GetImportedFolder(s, e, c);
-        string p = Path.Combine(f, name);
-        await File.WriteAllBytesAsync(p, data);
-        return p;
+        var folder = GetImportedFolder(session, exam, centre);
+        var path = Path.Combine(folder, fileName);
+        using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None))
+            await fs.WriteAsync(bytes, 0, bytes.Length);
+        return path;
     }
 
     public Task<string> MoveToErrorFolderAsync(string currentPath)
     {
-        string newPath = currentPath.Replace("\\success\\", "\\errors\\");
-        Ensure(Path.GetDirectoryName(newPath)!);
-
+        var newPath = currentPath.Replace(Path.DirectorySeparatorChar + "success" + Path.DirectorySeparatorChar,
+                                          Path.DirectorySeparatorChar + "errors" + Path.DirectorySeparatorChar);
+        var dir = Path.GetDirectoryName(newPath);
+        if (!string.IsNullOrEmpty(dir)) EnsureDir(dir);
         if (File.Exists(newPath)) File.Delete(newPath);
         File.Move(currentPath, newPath);
-
         return Task.FromResult(newPath);
     }
 
     public Task<string> MoveToSuccessFolderAsync(string currentPath)
     {
-        string newPath = currentPath.Replace("\\errors\\", "\\success\\");
-        Ensure(Path.GetDirectoryName(newPath)!);
-
+        var newPath = currentPath.Replace(Path.DirectorySeparatorChar + "errors" + Path.DirectorySeparatorChar,
+                                          Path.DirectorySeparatorChar + "success" + Path.DirectorySeparatorChar);
+        var dir = Path.GetDirectoryName(newPath);
+        if (!string.IsNullOrEmpty(dir)) EnsureDir(dir);
         if (File.Exists(newPath)) File.Delete(newPath);
         File.Move(currentPath, newPath);
-
         return Task.FromResult(newPath);
     }
 
-    public Task<bool> FileExistsAsync(string path)
-        => Task.FromResult(File.Exists(path));
+    public async Task DeleteBatchFolderAsync(string year, string exam, string centre)
+    {
+        string folder = Path.Combine(RootPath, year, exam, centre);
+
+        if (Directory.Exists(folder))
+        {
+            Directory.Delete(folder, recursive: true);
+        }
+
+        await Task.CompletedTask;
+    }
+
 }
+

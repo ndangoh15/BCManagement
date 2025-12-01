@@ -8,29 +8,16 @@ namespace Domain.InterfacesStores.CandDocs
 {
     public interface IFileStore
     {
-        public interface IFileStore
-        {
-            // --- PATH HELPERS ---
-            string BuildBasePath(string session, string exam, string centre);
-            string EnsureDir(string path);
+        Task<string> SaveSuccessFileAsync(byte[] bytes, string session, string exam, string centre, string fileName);
+        Task<string> SaveErrorFileAsync(byte[] bytes, string session, string exam, string centre, string fileName);
+        Task<string> MoveOriginalImportedPdfAsync(byte[] bytes, string session, string exam, string centre, string fileName);
 
-            string GetImportedFolder(string session, string exam, string centre);
-            string GetSuccessFolder(string session, string exam, string centre);
-            string GetErrorFolder(string session, string exam, string centre);
+        Task<string> MoveToErrorFolderAsync(string currentPath);
+        Task<string> MoveToSuccessFolderAsync(string currentPath);
 
-            // --- SAVE FILES ---
-            Task<string> SaveSuccessFileAsync(byte[] bytes, string session, string exam, string centre, string fileName);
+        string GetImportedFolder(string session, string exam, string centre);
+        string RootPath { get; }
 
-            // --- MOVE FILES ---
-            Task<string> MoveOriginalImportedPdfAsync(byte[] bytes, string session, string exam, string centre, string fileName);
-
-            Task<string> MoveToErrorFolderAsync(string currentPath);
-            Task<string> MoveToSuccessFolderAsync(string currentPath);
-
-            // --- UTILITIES ---
-            Task<bool> FileExistsAsync(string path);
-        }
-
-
+        Task DeleteBatchFolderAsync(string year, string exam, string centre);
     }
 }

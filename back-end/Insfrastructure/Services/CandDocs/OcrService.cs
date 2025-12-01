@@ -1,7 +1,7 @@
 ﻿using Domain.InterfacesServices.CandDocs;
 using Tesseract;
 
-namespace BCDocumentManagement.Infrastructure.Services.CandDocs
+namespace Infrastructure.Services.CandDocs
 {
     public class OcrService : IOcrService
     {

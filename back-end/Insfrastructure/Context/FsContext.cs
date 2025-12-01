@@ -44,7 +44,9 @@ namespace Infrastructure.Context
 
         public DbSet<ImportError> ImportErrors { get; set; }
         public DbSet<Candidate> Candidates { get; set; }
-       
+        public DbSet <ImportedBatchLog> ImportedBatchLogs { get; set; }
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

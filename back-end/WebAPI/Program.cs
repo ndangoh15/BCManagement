@@ -5,6 +5,7 @@ using Domain.InterfacesServices.Security;
 using Infrastructure.Exceptions;
 using Insfrastructure;
 using Insfrastructure.Mapper;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using System.Text.Json.Serialization;
 using WebAPI.Extensions;
@@ -15,6 +16,35 @@ const string DefaultConnectionString = "DefaultConnection";
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
 
+// ======================================================
+# region LARGE FILE UPLOAD SETTINGS (VERY IMPORTANT)
+// ======================================================
+
+// 👉 Allow uploads up to 500 MB (adjust if needed)
+long maxUploadSize = 500 * 1024 * 1024;
+
+// ---- 1) Kestrel limits ----
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = maxUploadSize; // Unlimited = null
+});
+
+// ---- 2) ASP.NET Core Form limits ----
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = maxUploadSize;
+});
+
+// ---- 3) Increase limit for Swagger (UI uploads) ----
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    options.MaxRequestBodySize = maxUploadSize;
+});
+
+// ---- 4) IIS Express web.config will override these values,
+// but we set them here so Kestrel also allows large requests.
+#endregion
+// ======================================================
 // ========================================
 // Core Services
 // ========================================
@@ -70,6 +100,18 @@ builder.Services.AddApplicationServices();
 
 
 var app = builder.Build();
+
+// ======================================================
+// MIDDLEWARE: Allow large requests even when proxied
+// ======================================================
+app.Use(async (context, next) =>
+{
+    var bodyLimitFeature = context.Features.Get<IHttpMaxRequestBodySizeFeature>();
+    if (bodyLimitFeature != null && !bodyLimitFeature.IsReadOnly)
+        bodyLimitFeature.MaxRequestBodySize = maxUploadSize;
+
+    await next();
+});
 
 // ========================================
 // Configure Middleware Pipeline

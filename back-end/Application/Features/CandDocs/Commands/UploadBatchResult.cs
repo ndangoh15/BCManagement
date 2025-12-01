@@ -10,6 +10,6 @@ namespace Application.Features.CandDocs.Commands
     {
         public int TotalCandidates { get; set; }
         public List<string> SavedFilePaths { get; set; } = new();
-        public List<string> Errors { get; set; } = new List<string>();
+        public string ImportedPath { get; set; } = "";
     }
 }

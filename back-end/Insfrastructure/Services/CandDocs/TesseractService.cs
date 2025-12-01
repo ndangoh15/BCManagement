@@ -10,60 +10,57 @@ namespace Infrastructure.Services.CandDocs
 {
     public class TesseractService : ITesseractService, IDisposable
     {
+
         private readonly string _tessdataPath;
-        private readonly TesseractEngine _engine;
-
-        public TesseractService(string tessdataPath, string language = "eng")
+        private readonly EngineMode _engineMode = EngineMode.Default;
+        public TesseractService(string tessdataPath)
         {
-            _tessdataPath = tessdataPath;
-
-            _engine = new TesseractEngine(_tessdataPath, language, EngineMode.LstmOnly);
-
-            // OCR tuning for GCE Cameroon birth certificates
-            _engine.SetVariable("tessedit_char_whitelist",
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/(). ");
-            _engine.SetVariable("load_system_dawg", "0");
-            _engine.SetVariable("load_freq_dawg", "0");
+            _tessdataPath = tessdataPath ?? throw new ArgumentNullException(nameof(tessdataPath));
         }
 
-        // ===================================================
-        // PUBLIC: Extract text directly from an image
-        // ===================================================
-        public string ExtractTextFromImage(byte[] imageBytes)
-        {
-            return ExtractWithTesseract(imageBytes);
-        }
+        //private readonly TesseractEngine _engine;
 
-        public async Task<string> ExtractTextFromImageAsync(byte[] imageBytes)
-        {
-            return await Task.Run(() => ExtractWithTesseract(imageBytes));
-        }
+        //public TesseractService(string tessdataPath, string language = "eng")
+        //{
+        //    if (!Directory.Exists(tessdataPath)) throw new DirectoryNotFoundException(tessdataPath);
+        //    _engine = new TesseractEngine(tessdataPath, language, EngineMode.LstmOnly);
+        //    _engine.SetVariable("load_system_dawg", "0");
+        //    _engine.SetVariable("load_freq_dawg", "0");
+        //    _engine.SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/. ");
+        //}
 
-        // ===================================================
-        // PUBLIC: Extract text from PDF (page render via Magick)
-        // ===================================================
         public async Task<string> ExtractTextFromPdfAsync(byte[] pdfBytes, int pageNumber = 1)
         {
-            if (pdfBytes == null)
-                throw new ArgumentNullException(nameof(pdfBytes));
-
             try
             {
+                if (pdfBytes == null || pdfBytes.Length == 0)
+                    return string.Empty;
+
                 var settings = new MagickReadSettings
                 {
-                    Density = new Density(300),
+                    Density = new Density(200),     // 200 is enough
                     FrameIndex = (uint)(pageNumber - 1),
                     FrameCount = 1
                 };
 
-                using var images = new MagickImageCollection();
                 using var ms = new MemoryStream(pdfBytes);
+                using var images = new MagickImageCollection();
                 images.Read(ms, settings);
+
+                if (images.Count == 0)
+                    return string.Empty;
 
                 using var img = (MagickImage)images[0];
 
-                // Improve image for OCR
-                PreprocessImage(img);
+                // BEST SETTINGS FOR GCE DOCUMENTS
+                img.ColorType = ColorType.Grayscale;
+                img.Normalize();          // Keep only Normalize()
+                img.Despeckle();          // Light – this one is safe
+
+                // ❌ DO NOT SHARPEN
+                // ❌ DO NOT ENHANCE
+                // ❌ DO NOT DESKEW (GCE is already aligned)
+                // ❌ DO NOT REDUCE NOISE
 
                 using var pngStream = new MemoryStream();
                 await img.WriteAsync(pngStream, MagickFormat.Png);
@@ -72,42 +69,30 @@ namespace Infrastructure.Services.CandDocs
             }
             catch (Exception ex)
             {
-                throw new Exception($"OCR PDF error: {ex.Message}", ex);
+                throw new Exception("OCR error: " + ex.Message, ex);
             }
         }
 
-        // ===================================================
-        // IMAGE PREPROCESSING PIPELINE (BEST SETTINGS)
-        // ===================================================
-        private void PreprocessImage(MagickImage img)
-        {
-            img.ColorType = ColorType.Grayscale;
-            img.Normalize();
-            img.Enhance();
-
-            // Smart sharpening
-            img.Sharpen();
-
-            // Deskew
-            img.Deskew(new Percentage(60));
-
-            // Remove noise
-            img.ReduceNoise();
-        }
-
-        // ===================================================
-        // TESSERACT CALL
-        // ===================================================
         private string ExtractWithTesseract(byte[] imageBytes)
         {
+            // Create engine using tessdata path. Languages: adjust ("eng+fra") as needed.
+            using var engine = new TesseractEngine(_tessdataPath, "eng+fra", _engineMode);
             using var img = Pix.LoadFromMemory(imageBytes);
-            using var page = _engine.Process(img);
-            return page.GetText();
+            using var page = engine.Process(img);
+            var text = page.GetText();
+            return text ?? string.Empty;
+        }
+
+        public Task<string> ExtractTextFromImageAsync(byte[] imageBytes)
+        {
+            if (imageBytes == null) throw new ArgumentNullException(nameof(imageBytes));
+            var text = ExtractWithTesseract(imageBytes);
+            return Task.FromResult(text);
         }
 
         public void Dispose()
         {
-            _engine?.Dispose();
+            // no global resources to dispose
         }
     }
 }

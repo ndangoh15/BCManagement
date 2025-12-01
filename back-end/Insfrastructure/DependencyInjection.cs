@@ -7,13 +7,11 @@ using Infrastructure.Stores.Localisation;
 using Infrastructure.Stores.Security;
 using Insfrastructure.Stores;
 using Microsoft.Extensions.DependencyInjection;
-using BCDocumentManagement.Infrastructure.Services.CandDocs;
-using BCDocumentManagement.Infrastructure.Stores.CandDocs;
 using Domain.InterfacesServices.CandDocs;
-
-using Microsoft.Extensions.Configuration;
 using Insfrastructure.Stores.CandDocs;
-using Insfrastructure.Services.CandDocs;
+using Infrastructure.Services.CandDocs;
+using Infrastructure.Repositories.CandDocs;
+
 
 namespace Insfrastructure
 {
@@ -32,7 +30,7 @@ namespace Insfrastructure
             services.AddSingleton<ITesseractService>(provider =>
             {
                 string tessdataPath = Path.Combine(Directory.GetCurrentDirectory(), "tessdata");
-                return new TesseractService(tessdataPath, "eng");
+                return new TesseractService(tessdataPath);
             });
 
             // Security
@@ -52,9 +50,9 @@ namespace Insfrastructure
             services.AddScoped<ICompanyStore, CompanyStore>();
             services.AddScoped<IArchiveStore, ArchiveStore>();
 
-            services.AddScoped<IPdfSplitService, PdfSplitService>();
+            //services.AddScoped<IPdfSplitService, PdfUtils>();
             services.AddScoped<IOcrService, OcrService>();
-            services.AddScoped<IFileStore, FileStore>();
+            services.AddScoped<IFileStore, FileStore>(sp => new FileStore("D:\\GCEB_PROJECT\\Storage"));
             services.AddScoped<ICandidateRepository, CandidateRepository>();
             services.AddScoped<IImportErrorService, ImportErrorStore>();
 

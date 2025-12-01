@@ -5,8 +5,6 @@ using Domain.InterfacesServices.Configurations;
 using Domain.InterfacesServices.Security;
 using Domain.InterfacesStores.Security;
 using Microsoft.Extensions.DependencyInjection;
-using BCDocumentManagement.Application.Features.CandDocs.Commands;
-using BCDocumentManagement.Application.Features.CandDocs.Queries;
 using Application.Features.CandDocs.Commands;
 
 namespace Application
@@ -33,7 +31,7 @@ namespace Application
 
             // register handlers / services
             services.AddScoped<UploadBatchHandler>();
-            services.AddScoped<SearchDocumentHandler>();
+            //services.AddScoped<SearchDocumentHandler>();
             services.AddScoped<ExtractOcrFromPage1Handler>();
 
     

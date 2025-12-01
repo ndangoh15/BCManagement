@@ -1,6 +1,4 @@
-﻿using System;
-using Domain.Entities.CandDocs;
-using Domain.InterfacesServices.CandDocs;
+﻿using Domain.Entities.CandDocs;
 using Domain.InterfacesStores.CandDocs;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
@@ -10,102 +8,79 @@ namespace Infrastructure.Repositories.CandDocs
     public class CandidateRepository : ICandidateRepository
     {
         private readonly FsContext _ctx;
+        public CandidateRepository(FsContext ctx) => _ctx = ctx;
 
-        public CandidateRepository(FsContext ctx)
+        public async Task<CandidateDocument> AddAsync(CandidateDocument doc)
         {
-            _ctx = ctx;
+            var ent = await _ctx.CandidateDocuments.AddAsync(doc);
+            await _ctx.SaveChangesAsync();
+            return ent.Entity;
         }
 
-        // ----------------------------------------
-        // INSERT NEW DOCUMENT
-        // ----------------------------------------
-        public async Task AddCandidateDocumentAsync(CandidateDocument document)
+        public async Task UpdateAsync(CandidateDocument doc)
         {
-            await _ctx.CandidateDocuments.AddAsync(document);
+            _ctx.CandidateDocuments.Update(doc);
             await _ctx.SaveChangesAsync();
         }
 
-        // ----------------------------------------
-        // UPDATE DOCUMENT (After Correction)
-        // ----------------------------------------
-        public async Task UpdateAsync(CandidateDocument document)
+        public Task<CandidateDocument?> GetByIdAsync(int id)
+            => _ctx.CandidateDocuments.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+
+        public Task<List<CandidateDocument>> GetDocumentsAsync(int session, string centre)
         {
-            _ctx.CandidateDocuments.Update(document);
+            return _ctx.CandidateDocuments
+                       .Where(x => x.Session == session && x.CentreCode == centre)
+                       .OrderBy(x => x.CandidateNumber)
+                       .ToListAsync();
+        }
+
+        public async Task AddImportErrorsAsync(IEnumerable<ImportError> errors)
+        {
+            await _ctx.ImportErrors.AddRangeAsync(errors);
+            await _ctx.SaveChangesAsync();
+        }
+        public async Task<List<CandidateDocument>> SearchAsync(string name, string candidatenumber, string centerNumber)
+        {
+            return await _ctx.CandidateDocuments
+                .Where(x =>
+                    (string.IsNullOrEmpty(name) || x.CandidateName.Contains(name)) &&
+                    (string.IsNullOrEmpty(centerNumber) || x.CentreCode == centerNumber) &&
+                    (string.IsNullOrEmpty(candidatenumber) || x.CandidateNumber == candidatenumber))
+                .ToListAsync();
+        }
+
+        public async Task<bool> HasBatchBeenImportedAsync(string fileName, int year, string examCode, string center)
+        {
+            return await _ctx.ImportedBatchLogs.AnyAsync(x =>
+                x.FileName == fileName &&
+                x.ExamYear == year &&
+                x.ExamCode == examCode &&
+                x.CentreNumber == center);
+        }
+
+        public async Task DeleteDocumentsForBatchAsync(int year, string examCode, string center)
+        {
+            var docs = _ctx.CandidateDocuments
+                .Where(x => x.Session == year && x.CentreCode == center && x.ExamCode == examCode);
+
+            _ctx.CandidateDocuments.RemoveRange(docs);
             await _ctx.SaveChangesAsync();
         }
 
-        // ----------------------------------------
-        // GET DOCUMENT BY ID
-        // ----------------------------------------
-        public async Task<CandidateDocument?> GetByIdAsync(int id)
+        public async Task LogImportedBatchAsync(string fileName, int year, string examCode, string center)
         {
-            return await _ctx.CandidateDocuments
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id);
-        }
-
-        // ----------------------------------------
-        // LIST ALL DOCUMENTS FOR THE CENTRE+SESSION
-        // ----------------------------------------
-        public async Task<List<CandidateDocument>> GetDocumentsAsync(
-            string session, string examCode, string centre)
-        {
-            return await _ctx.CandidateDocuments
-                .Where(x => x.Session.ToString() == session &&
-                            x.CentreCode == centre &&
-                            x.FormCentreCode == centre)
-                .OrderBy(x => x.CandidateNumber)
-                .ToListAsync();
-        }
-
-        // ----------------------------------------
-        // LIST ONLY INVALID DOCUMENTS
-        // ----------------------------------------
-        public async Task<List<CandidateDocument>> GetInvalidDocumentsAsync(
-            string session, string examCode, string centre)
-        {
-            return await _ctx.CandidateDocuments
-                .Where(x => x.Session.ToString() == session &&
-                            x.CentreCode == centre &&
-                            x.IsValid == false)
-                .OrderBy(x => x.CandidateNumber)
-                .ToListAsync();
-        }
-
-        // ----------------------------------------
-        // LIST ONLY VALID DOCUMENTS
-        // ----------------------------------------
-        public async Task<List<CandidateDocument>> GetValidDocumentsAsync(
-            string session, string examCode, string centre)
-        {
-            return await _ctx.CandidateDocuments
-                .Where(x => x.Session.ToString() == session &&
-                            x.CentreCode == centre &&
-                            x.IsValid == true)
-                .OrderBy(x => x.CandidateNumber)
-                .ToListAsync();
-        }
-
-        // ----------------------------------------
-        // DELETE
-        // ----------------------------------------
-        public async Task DeleteAsync(int id)
-        {
-            var entity = await _ctx.CandidateDocuments.FindAsync(id);
-            if (entity != null)
+            var log = new ImportedBatchLog
             {
-                _ctx.CandidateDocuments.Remove(entity);
-                await _ctx.SaveChangesAsync();
-            }
-        }
-        // ---------------------------
-        // GET BY ID (new recommended)
-        // ---------------------------
-        public async Task<CandidateDocument?> GetDocumentByIdAsync(int id)
-        {
-            return await _ctx.CandidateDocuments
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.Id == id);
+                FileName = fileName,
+                ExamYear = year,
+                ExamCode = examCode,
+                CentreNumber = center,
+                ImportedAt = DateTime.UtcNow
+            };
+
+            _ctx.ImportedBatchLogs.Add(log);
+            await _ctx.SaveChangesAsync();
         }
     }
 }
+

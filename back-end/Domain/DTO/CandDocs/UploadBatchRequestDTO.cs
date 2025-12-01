@@ -9,7 +9,7 @@ namespace Domain.DTO.CandDocs
 {
     public class UploadBatchRequestDTO
     {
-        public IFormFile PdfFile { get; set; }
+        public string ServerSourceFilePath { get; set; }
 
         public int ExamYear { get; set; }
         public string ExamCode { get; set; }

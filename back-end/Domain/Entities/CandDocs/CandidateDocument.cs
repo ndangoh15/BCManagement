@@ -38,6 +38,7 @@ namespace Domain.Entities.CandDocs
         public virtual ICollection<ImportError> ImportErrors { get; set; }
 
         public string FormCentreCode { get; set; } = "";
+        public string ExamCode { get; set; }
 
     }
 }
