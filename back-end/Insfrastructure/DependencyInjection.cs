@@ -22,11 +22,17 @@ namespace Insfrastructure
         public static IServiceCollection AddInfrastructureStores(this IServiceCollection services)
         {
 
-            services.AddSingleton<ITesseractService>(sp =>
+            //services.AddSingleton<ITesseractService>(sp =>
+            //{
+            //    var config = sp.GetRequiredService<IConfiguration>();
+            //    var tessPath = config["Tesseract:TessDataPath"] ?? "tessdata";
+            //    return new TesseractService(tessPath,"eng");
+            //});
+
+            services.AddSingleton<ITesseractService>(provider =>
             {
-                var config = sp.GetRequiredService<IConfiguration>();
-                var tessPath = config["Tesseract:TessDataPath"] ?? "tessdata";
-                return new TesseractService(tessPath,"eng");
+                string tessdataPath = Path.Combine(Directory.GetCurrentDirectory(), "tessdata");
+                return new TesseractService(tessdataPath, "eng");
             });
 
             // Security

@@ -10,14 +10,16 @@ namespace Domain.InterfacesStores.CandDocs
     public interface ICandidateRepository
     {
         Task AddCandidateDocumentAsync(CandidateDocument document);
-        Task<List<CandidateDocument>> SearchAsync(string name, string candidatenumber, string centerNumber);
-        
-        Task<CandidateDocument> GetByIdAsync(int id);
-        Task UpdateAsync(CandidateDocument doc);
-        Task<List<CandidateDocument>> GetInvalidDocumentsAsync();
-        Task<List<CandidateDocument>> GetValidDocumentsAsync();
-        Task SaveChangesAsync();
-        Task<List<CandidateDocument>> GetInvalidWithErrorsAsync();
-        Task<List<CandidateDocument>> GetErrorsByCentreAsync(string centre);
+        Task UpdateAsync(CandidateDocument document);
+
+        Task<CandidateDocument?> GetByIdAsync(int id);
+        Task<CandidateDocument?> GetDocumentByIdAsync(int id);
+
+        Task<List<CandidateDocument>> GetDocumentsAsync(string session, string examCode, string centre);
+
+        Task<List<CandidateDocument>> GetInvalidDocumentsAsync(string session, string examCode, string centre);
+        Task<List<CandidateDocument>> GetValidDocumentsAsync(string session, string examCode, string centre);
+
+        Task DeleteAsync(int id);
     }
 }

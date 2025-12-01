@@ -1,195 +1,144 @@
-using Microsoft.AspNetCore.Mvc;
-using BCDocumentManagement.Application.Features.CandDocs.Commands;
-using BCDocumentManagement.Application.Features.CandDocs.Queries;
-
+﻿using Application.Features.CandDocs.Commands;
 using Domain.DTO.CandDocs;
+using Domain.InterfacesServices.CandDocs;
+using Domain.InterfacesStores.CandDocs;
+using Microsoft.AspNetCore.Mvc;
 
-using Application.Features.CandDocs.Commands;
-using Application.Features.CandDocs.Queries;
-using Microsoft.AspNetCore.Http;
-using System.Reflection.Metadata;
-
-namespace BCDocumentManagement.WebAPI.Controllers
+namespace WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class DocumentController : ControllerBase
     {
-        private readonly UploadBatchHandler _uploadHandler;
-        private readonly SearchDocumentHandler _searchHandler;
-        private readonly IWebHostEnvironment _env; // optional, for file returns
-        private readonly ExtractOcrFromPage1Handler _ocrHandler;
+        private readonly UploadBatchHandler _uploadBatchHandler;
+        private readonly ICandidateRepository _candidateRepo;
+        private readonly IFileStore _fileStore;
+        private readonly ITesseractService _ocr;
 
-        public DocumentController(UploadBatchHandler uploadHandler, SearchDocumentHandler searchHandler, IWebHostEnvironment env, ExtractOcrFromPage1Handler ocrHandler)
+        public DocumentController(
+            UploadBatchHandler uploadBatchHandler,
+            ICandidateRepository candidateRepo,
+            IFileStore fileStore,
+            ITesseractService ocr)
         {
-            _uploadHandler = uploadHandler;
-            _searchHandler = searchHandler;
-            _env = env;
-            _ocrHandler = ocrHandler;
+            _uploadBatchHandler = uploadBatchHandler;
+            _candidateRepo = candidateRepo;
+            _fileStore = fileStore;
+            _ocr = ocr;
         }
 
-//        [HttpPost("ocr-extract")]
-//        public async Task<IActionResult> ExtractOcr([FromBody] ExtractOcrFromPage1 request)
-//        {
-//            if (request == null || request.PdfFile == null) return BadRequest("PdfFile required");
-//            try
-//            {
-//                var text = await _ocrHandler.Handle(request);
-//                return Ok(new { text });
-//            }
-//            catch (Exception ex)
-//            {
-//                return StatusCode(500, ex.Message.ToString());
-//            }
-//}
-
-//        // ------------------------------------------------------------
-//        // VERSION 2: MULTIPART (IFormFile) for Angular or Swagger
-//        // ------------------------------------------------------------
-//        [HttpPost("ocr-extract-form")]
-//        [Consumes("multipart/form-data")]
-//        public async Task<IActionResult> ExtractOcrForm([FromForm] IFormFile pdfFile, [FromForm] int pageNumber = 1)
-//        {
-//            if (pdfFile == null || pdfFile.Length == 0)
-//                return BadRequest("pdfFile is required.");
-
-//            using var ms = new MemoryStream();
-//            await pdfFile.CopyToAsync(ms);
-//            var bytes = ms.ToArray();
-
-//            var request = new ExtractOcrFromPage1
-//            {
-//                PdfFile = bytes,
-//                PageNumber = pageNumber
-//            };
-//            try
-//            {
-//                var result = await _ocrHandler.Handle(request);
-//                return Ok(new { text = result });
-//            }
-//            catch (Exception ex)
-//            {
-//                return StatusCode(500, ex.Message.ToString());
-//            }
-//        }
-
-        /// <summary>
-        /// Upload a batch PDF (form-data).
-        /// Form fields: file (IFormFile), examYear (int), examCode (int), centerNumber (int)
-        /// </summary>
+        // ------------------------------------------------------------
+        // 1. UPLOAD BATCH PDF
+        // ------------------------------------------------------------
         [HttpPost("upload")]
-        [Consumes("multipart/form-data")]
-        [DisableRequestSizeLimit]
-        public async Task<IActionResult> Upload([FromForm] UploadDocumentForm form)
+        public async Task<IActionResult> UploadDocuments([FromForm] UploadBatchRequestDTO request)
         {
-            if (form.File == null || form.File.Length == 0) return BadRequest("File is required.");
+            if (request.PdfFile == null || request.PdfFile.Length == 0)
+                return BadRequest("No PDF uploaded.");
 
-            // read incoming file into memory
-            byte[] pdfBytes;
-            using (var ms = new MemoryStream())
-            {
-                await form.File.CopyToAsync(ms);
-                pdfBytes = ms.ToArray();
-            }
+            // Save uploaded temp file
+            var uploadTempPath = Path.Combine(Path.GetTempPath(),
+                $"{Guid.NewGuid()}_{request.PdfFile.FileName}");
 
-            var requestDto = new UploadBatchRequestDTO
+            using (var fs = new FileStream(uploadTempPath, FileMode.Create, FileAccess.Write))
+                await request.PdfFile.CopyToAsync(fs);
+
+            var bytes = await System.IO.File.ReadAllBytesAsync(uploadTempPath);
+            var cmd = new UploadBatchCommand(request, bytes, request.UploadedBy)
             {
-                PdfFile = pdfBytes,
-                ExamYear = form.ExamYear,
-                ExamCode = form.ExamCode,
-                CenterNumber = form.CenterNumber
+                ServerSourceFilePath = uploadTempPath
             };
 
-            var command = new UploadBatchCommand
-            {
-                Request = requestDto,
-                UploadedBy = User?.Identity?.Name ?? "anonymous",
-                ServerSourceFilePath = form.ServerSourceFilePath
-            };
+            var result = await _uploadBatchHandler.HandleAsync(cmd);
 
-            try
-            {
-                var res = await _uploadHandler.HandleAsync(command);
-                return Ok(res);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message.ToString());
-            }
-        }
-
-        ///// <summary>
-        ///// Upload a batch PDF from the scanner.
-        ///// </summary>
-        //[HttpPost("upload-batch")]
-        //public async Task<IActionResult> UploadBatch([FromBody] UploadBatchRequestDTO dto)
-        //{
-        //    if (dto.PdfFile == null || dto.PdfFile.Length == 0)
-        //        return BadRequest("PDF file is missing.");
-
-        //    var result = await _uploadHandler.Handle(dto);
-
-        //    if (!result.Success)
-        //        return BadRequest(result.Message);
-
-        //    return Ok(new
-        //    {
-        //        success = true,
-        //        message = "Batch processed successfully.",
-        //        savedDocuments = result.DocumentsCount
-        //    });
-        //}
-
-        /// <summary>
-        /// Search candidate documents
-        /// </summary>
-        [HttpGet("search")]
-        public async Task<IActionResult> Search([FromQuery] string name, [FromQuery] string candidatenumber, [FromQuery] string centrenumber, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
-        {
-            var query = new SearchDocumentQuery
-            {
-                CandidateName = name,
-                CandidateNumber = candidatenumber,
-                CenterNumber = centrenumber,
-                Page = page,
-                PageSize = pageSize
-            };
-
-            var items = await _searchHandler.HandleAsync(query);
-            return Ok(items);
-        }
-
-        /// <summary>
-        /// Return a candidate PDF file for download/preview
-        /// </summary>
-        [HttpGet("{id}/file")]
-        public async Task<IActionResult> GetFile([FromRoute] int id)
-        {
-            // simple implementation: query repository and return file
-            // to avoid adding repo dependency in controller, you can create a small store or repo injection
-            // For simplicity, resolve ICandidateRepository from HttpContext.RequestServices
-            var repo = HttpContext.RequestServices.GetService<Domain.InterfacesStores.CandDocs.ICandidateRepository>();
-            var item = (await repo.SearchAsync(null, null, null)).FirstOrDefault(d => d.Id == id);
-            if (item == null) return NotFound();
-
-            if (!System.IO.File.Exists(item.FilePath)) return NotFound("File not found on disk.");
-
-            var bytes = await System.IO.File.ReadAllBytesAsync(item.FilePath);
-            return File(bytes, "application/pdf", Path.GetFileName(item.FilePath));
-        }
-
-        [HttpPut("candidate/update")]
-        public async Task<IActionResult> UpdateCandidate([FromBody] UpdateCandidateRequestDTO req)
-        {
-            var result = await _uploadHandler.UpdateCandidateAsync(req);
             return Ok(result);
         }
 
-        [HttpPost("validate-document")]
-        public async Task<IActionResult> ValidateDocument([FromBody] ValidateDocumentRequestDTO req)
+        // ------------------------------------------------------------
+        // 2. GET DOCUMENTS BY CENTRE + SESSION
+        // ------------------------------------------------------------
+        [HttpGet("list")]
+        public async Task<IActionResult> GetDocuments(string session, string exam, string centre)
         {
-            var result = await _uploadHandler.ValidateCorrectedDocumentAsync(req.CandidateDocumentId);
-            return Ok(result);
+            var docs = await _candidateRepo.GetDocumentsAsync(session, exam, centre);
+            return Ok(docs);
+        }
+
+        // ------------------------------------------------------------
+        // 3. UPDATE CANDIDATE INFO (Correct validation errors)
+        // ------------------------------------------------------------
+        [HttpPost("update-candidate")]
+        public async Task<IActionResult> UpdateCandidate([FromBody] UpdateCandidateDto dto)
+        {
+            var doc = await _candidateRepo.GetDocumentByIdAsync(dto.DocumentId);
+            if (doc == null) return NotFound("Document not found.");
+
+            doc.CandidateNumber = dto.CandidateNumber;
+            doc.CandidateName = dto.CandidateName;
+            doc.CentreCode = dto.CentreCode;
+            doc.IsValid = true;
+
+            await _candidateRepo.UpdateAsync(doc);
+
+            // MOVE error → success
+            if (doc.FilePath.Contains("\\errors\\"))
+                doc.FilePath = await _fileStore.MoveToSuccessFolderAsync(doc.FilePath);
+
+            return Ok(new { success = true, message = "Candidate updated successfully." });
+        }
+
+        // ------------------------------------------------------------
+        // 4. MARK DOCUMENT AS INVALID (Admin correction)
+        // ------------------------------------------------------------
+        [HttpPost("mark-invalid")]
+        public async Task<IActionResult> MarkInvalid([FromBody] MarkInvalidDto dto)
+        {
+            var doc = await _candidateRepo.GetDocumentByIdAsync(dto.DocumentId);
+            if (doc == null) return NotFound();
+
+            doc.IsValid = false;
+            await _candidateRepo.UpdateAsync(doc);
+
+            doc.FilePath = await _fileStore.MoveToErrorFolderAsync(doc.FilePath);
+
+            return Ok(new { success = true });
+        }
+
+        // ------------------------------------------------------------
+        // 5. RE-RUN OCR ON ONE DOCUMENT (optional)
+        // ------------------------------------------------------------
+        [HttpPost("rerun-ocr")]
+        public async Task<IActionResult> ReRunOcr([FromBody] ReRunOcrDto dto)
+        {
+            var doc = await _candidateRepo.GetDocumentByIdAsync(dto.DocumentId);
+            if (doc == null) return NotFound("Document missing.");
+
+            var bytes = await System.IO.File.ReadAllBytesAsync(doc.FilePath);
+            var ocr = await _ocr.ExtractTextFromPdfAsync(bytes, 1);
+
+            doc.OcrText = ocr;
+            await _candidateRepo.UpdateAsync(doc);
+
+            return Ok(new
+            {
+                success = true,
+                ocr
+            });
+        }
+
+        // ------------------------------------------------------------
+        // 6. DOWNLOAD THE DOCUMENT
+        // ------------------------------------------------------------
+        [HttpGet("download")]
+        public async Task<IActionResult> Download(int id)
+        {
+            var doc = await _candidateRepo.GetDocumentByIdAsync(id);
+            if (doc == null) return NotFound();
+
+            var bytes = await System.IO.File.ReadAllBytesAsync(doc.FilePath);
+            var fileName = Path.GetFileName(doc.FilePath);
+
+            return File(bytes, "application/pdf", fileName);
         }
     }
 }
