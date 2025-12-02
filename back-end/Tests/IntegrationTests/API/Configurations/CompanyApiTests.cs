@@ -19,15 +19,15 @@ namespace Tests.IntegrationTests.API.Configurations
 
         private MultipartFormDataContent BuildCompanyContent(
             string code = "CP01",
-            string name = "Valdoz Holdings",
+            string name = "BC Holdings",
             string abbreviation = "VH",
             string description = "Default description",
             int? companyId = null,
             int? adressId = null,
             string adressPhoneNumber = "+237699123456",
             string adressCellNumber = "+237677123456",
-            string adressEmail = "info@valdoz.cm",
-            string adressWebSite = "www.valdoz.cm",
+            string adressEmail = "info@gceb.cm",
+            string adressWebSite = "www.gceb.cm",
             string adressPOBox = "BP 1234",
             int? adressQuarterId = 1,
             bool includeFile = true)
@@ -108,13 +108,13 @@ namespace Tests.IntegrationTests.API.Configurations
 
             var created = await response.Content.ReadFromJsonAsync<CompanyModel>();
             created.Should().NotBeNull();
-            created!.CompanyName.Should().Be("Valdoz Holdings");
+            created!.CompanyName.Should().Be("BC Holdings");
             created.CompanyCode.Should().Be("CP01");
             created.Archive.Should().NotBeNull();
             created.Archive!.FileBase64.Should().NotBeNullOrEmpty();
             created.Adress.Should().NotBeNull();
             created.Adress!.AdressPhoneNumber.Should().Be("+237699123456");
-            created.Adress.AdressEmail.Should().Be("info@valdoz.cm");
+            created.Adress.AdressEmail.Should().Be("info@gceb.cm");
         }
 
         [Fact]

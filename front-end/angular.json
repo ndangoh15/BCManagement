@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "valdoz-front-end": {
+    "GCEBC-front-end": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -62,7 +62,7 @@
               "bezier-easing",
               "@ckeditor/ckeditor5-build-classic"
             ],
-            "outputPath": "C:/inetpub/wwwroot/valdoz_temp",
+            "outputPath": "C:/inetpub/wwwroot/GCEBC_temp",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": [
@@ -131,10 +131,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "valdoz-front-end:build:production"
+              "buildTarget": "GCEBC-front-end:build:production"
             },
             "development": {
-              "buildTarget": "valdoz-front-end:build:development"
+              "buildTarget": "GCEBC-front-end:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -142,7 +142,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "valdoz-front-end:build"
+            "buildTarget": "GCEBC-front-end:build"
           }
         },
         "test": {

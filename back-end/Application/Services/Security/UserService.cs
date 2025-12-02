@@ -86,8 +86,8 @@ namespace Application.Service
             var securityKey = new SymmetricSecurityKey(key);
             var creds = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var token = new JwtSecurityToken(
-                issuer: "Valdoz",
-                audience: "Valdoz",
+                issuer: "BC",
+                audience: "BC",
                 claims: claims,
                 expires: expiarationDate, // Set token expiration as needed
                 signingCredentials: creds);

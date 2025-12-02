@@ -1,4 +1,3 @@
-import { ContractRoutingModule } from './../../pages/contracts/contract-routing.module';
 import { Routes } from '@angular/router';
 import { PrivilegeGuard } from 'src/app/guard/privilege.guard';
 
@@ -14,47 +13,6 @@ export const content: Routes = [
     canActivate: [PrivilegeGuard]
 
   },
-
-
-  {
-    path: '',
-    loadChildren: () => import('../../pages/employees/employee.module').then(m => m.EmployeeModule),
-    canActivate: [PrivilegeGuard]
-
-  },
-
-    {
-    path: '',
-    loadChildren: () => import('../../pages/compensations/compensations.module').then(m => m.CompasentionModule),
-    canActivate: [PrivilegeGuard]
-
-  },
-
-
-
-  {
-    path: '',
-    loadChildren: () => import('../../pages/contracts/contract.module').then(m => m.ContractModule),
-    canActivate: [PrivilegeGuard]
-
-  },
-
-  
-  {
-    path: '',
-    loadChildren: () => import('../../pages/time-activities/time-activity.module').then(m => m.TimeActivityModule),
-    canActivate: [PrivilegeGuard]
-
-  },
-
-
-
-  {
-    path: '',
-    loadChildren: () => import('../../pages/reciepts/reciept.module').then(m => m.RecieptModule),
-
-  },
-
 
   {
     path: '',

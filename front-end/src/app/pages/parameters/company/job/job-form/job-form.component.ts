@@ -1,6 +1,4 @@
-import { DepartmentService } from './../../../../../generated/api/department.service';
-
-import { CountryModel, DepartmentModel, JobService, LocalisationService, RegionModel } from 'src/app/generated';
+import { CountryModel,  JobService, LocalisationService, RegionModel } from 'src/app/generated';
 
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -29,9 +27,7 @@ export class JobsFormComponent implements OnInit, OnChanges {
 
   isSubmitted = false;
 
-  departments : DepartmentModel[] = []
-
-  constructor(private formBuilder: FormBuilder, private jobService: JobService,private departmentService : DepartmentService) {
+  constructor(private formBuilder: FormBuilder, private jobService: JobService) {
     this.initCreateForm();
   }
 
@@ -48,8 +44,6 @@ export class JobsFormComponent implements OnInit, OnChanges {
   }
 
   async ngOnInit() {
-
-   this.departments = await firstValueFrom(this.departmentService.departmentControllerGetAllDepartments());
 
   }
 
@@ -70,7 +64,6 @@ export class JobsFormComponent implements OnInit, OnChanges {
         jobCode: this.form['jobCode'].value,
         jobLabel: this.form['jobLabel'].value,
         jobDescription: this.form['jobDescription'].value,
-        departmentID :this.form['departmentID'].value,
       }
 
       try {
@@ -103,8 +96,7 @@ export class JobsFormComponent implements OnInit, OnChanges {
     this.jobForm = this.formBuilder.group({
       jobCode: [null, Validators.required],
       jobLabel: [null, Validators.required],
-      jobDescription: [null, Validators.required],
-      departmentID: [null, Validators.required],
+      jobDescription: [null, Validators.required]
     });
   }
 
@@ -114,8 +106,7 @@ export class JobsFormComponent implements OnInit, OnChanges {
       jobID: [Job.jobID],
       jobCode: [Job.jobCode, Validators.required],
       jobLabel: [Job.jobLabel, Validators.required],
-      jobDescription: [Job.jobDescription, Validators.required],
-      departmentID: [Job.departmentID, Validators.required],
+      jobDescription: [Job.jobDescription, Validators.required]
     });
   }
 

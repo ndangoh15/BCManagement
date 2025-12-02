@@ -305,11 +305,8 @@ namespace Insfrastructure.Stores
         public ActionMenuProfile? GetActionByPath(int profileID, string path)
         {
             path = path.Substring(1);
-            path = path.Replace("valdoz/", "");
-            path = path.Replace("doyoan/", "");
-            path = path.Replace("rapha/", "");
-            path = path.Replace("nissi/", "");
-            path = path.Replace("enject/", "");
+            path = path.Replace("BC/", "");
+            
 
             var actionMenu = _dbContext.Menus.FirstOrDefault(men => men.MenuPath.ToLower().Equals(path.ToLower()));
             if (actionMenu != null)

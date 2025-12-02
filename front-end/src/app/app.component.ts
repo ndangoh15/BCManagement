@@ -31,7 +31,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private http:HttpClient
   ) {}
 
-  title = 'valdoz-front-end';
+  title = 'BC-front-end';
   async ngOnInit() {
     const newElement = this.renderer.createElement('html');
     this.renderer.appendChild(document.body, newElement);
@@ -81,7 +81,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     setInterval(() => {
       if (environment.production){
         this.http
-        .get('/valdoz/assets/version.json', {
+        .get('/BC/assets/version.json', {
           headers: { 'Cache-Control': 'no-cache' },
         })
         .subscribe((data: any) => {

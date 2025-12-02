@@ -14,15 +14,6 @@ stages:
         DC_VAL_DLA_01:
           agentName: DC-VAL-DLA-01
           location: Douala Akwa
-        DOYOAN_DC_DLA_0:
-          agentName: DOYOAN-DC-DLA-0
-          location: Douala Bonamoussadi
-        RAFA_DLA_DC_01:
-          agentName: RAFA-DLA-DC-01
-          location: Douala Bonaberi
-        DOYOANSERVERYDE:
-          agentName: DOYOANSERVERYDE
-          location: Yaounde Doyoan Tsinga
     pool:
       name: 'default'
       demands:
@@ -45,6 +36,6 @@ stages:
       displayName: 'Build Angular'
 
     - script: |
-        xcopy C:\inetpub\wwwroot\valdoz_temp\* C:\inetpub\wwwroot\valdoz\ /E /H /Y /C
-        copy "C:\inetpub\wwwroot\valdoz\assets\web.config" "C:\inetpub\wwwroot\valdoz\web.config"
+        xcopy C:\inetpub\wwwroot\BC_temp\* C:\inetpub\wwwroot\BC\ /E /H /Y /C
+        copy "C:\inetpub\wwwroot\BC\assets\web.config" "C:\inetpub\wwwroot\BC\web.config"
       displayName: 'Deploy project'

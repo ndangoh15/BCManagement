@@ -41,7 +41,7 @@ stages:
     - script: |
         iisreset /stop
         echo "Suppression des anciens fichiers..."
-        rd /s /q "C:\inetpub\wwwroot\NewValdozManagementAPI"
-        dotnet publish WebAPI/WebAPI.csproj --configuration Release --output "C:\inetpub\wwwroot\NewValdozManagementAPI\"
+        rd /s /q "C:\inetpub\wwwroot\NewBCManagementAPI"
+        dotnet publish WebAPI/WebAPI.csproj --configuration Release --output "C:\inetpub\wwwroot\NewBCManagementAPI\"
         iisreset /start
       displayName: 'Publish Application and deploy application'

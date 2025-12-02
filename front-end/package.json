@@ -1,11 +1,11 @@
 {
-  "name": "valdoz-front-end",
+  "name": "BC-front-end",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "prebuild": "node generate-host.mjs",
-    "build": "ng build --configuration=production --base-href /valdoz/",
+    "build": "ng build --configuration=production --base-href /BC/",
     "gen-api": "npx openapi-generator-cli generate -i http://localhost:5003/swagger/v1/swagger.json -g typescript-angular -o src/app/generated  --additional-properties=ngVersion=16.2.12,basePath=",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
