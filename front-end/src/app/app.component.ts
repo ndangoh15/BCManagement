@@ -31,7 +31,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private http:HttpClient
   ) {}
 
-  title = 'BC-front-end';
+  title = 'GCEBC-front-end';
   async ngOnInit() {
     const newElement = this.renderer.createElement('html');
     this.renderer.appendChild(document.body, newElement);
@@ -81,7 +81,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     setInterval(() => {
       if (environment.production){
         this.http
-        .get('/BC/assets/version.json', {
+        .get('/GCEBC/assets/version.json', {
           headers: { 'Cache-Control': 'no-cache' },
         })
         .subscribe((data: any) => {

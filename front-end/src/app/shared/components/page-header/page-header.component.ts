@@ -15,7 +15,7 @@ export class PageHeaderComponent {
 
   ngOnInit(): void {
     if (this.title) {
-      this.titleService.setTitle("Valdoz - "+this.activeitem +" > "+this.title);
+      this.titleService.setTitle("GCEBC - "+this.activeitem +" > "+this.title);
     }
   }
 }

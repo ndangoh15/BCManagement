@@ -2,12 +2,12 @@
 
 # Compiled output
 /dist
-/valdoz
+/GCEBC
 /tmp
 /out-tsc
 /bazel-out
 
-/valdoz_temp
+/GCEBC_temp
 # Node
 /node_modules
 npm-debug.log

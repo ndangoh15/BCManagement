@@ -36,6 +36,6 @@ stages:
       displayName: 'Build Angular'
 
     - script: |
-        xcopy C:\inetpub\wwwroot\BC_temp\* C:\inetpub\wwwroot\BC\ /E /H /Y /C
-        copy "C:\inetpub\wwwroot\BC\assets\web.config" "C:\inetpub\wwwroot\BC\web.config"
+        xcopy C:\inetpub\wwwroot\GCEBC_temp\* C:\inetpub\wwwroot\GCEBC\ /E /H /Y /C
+        copy "C:\inetpub\wwwroot\GCEBC\assets\web.config" "C:\inetpub\wwwroot\GCEBC\web.config"
       displayName: 'Deploy project'

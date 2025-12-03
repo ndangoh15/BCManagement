@@ -1,6 +1,6 @@
 
 //App const prefix
-const PREFIX = "valdoz";
+const PREFIX = "GCEBC";
 
 
 export const COMPANY = PREFIX + "company";

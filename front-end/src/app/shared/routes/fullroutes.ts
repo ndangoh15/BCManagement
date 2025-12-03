@@ -29,4 +29,11 @@ export const content: Routes = [
     path: '',
     loadChildren: () => import('../../components/authentication/errorpages/errorpages.module').then(m => m.ErrorpagesModule),
   },
+
+  {
+  path: '',
+  loadChildren: () =>
+      import('../../pages/documents/documents.module').then(m => m.DocumentsModule)
+  },
+
 ];
