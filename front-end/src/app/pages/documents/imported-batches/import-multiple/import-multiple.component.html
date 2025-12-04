@@ -1,0 +1,71 @@
+<!-- Main Modal -->
+<div *ngIf="open" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+  <div class="bg-white shadow-xl rounded-lg w-[850px] max-h-[90vh] overflow-hidden">
+
+    <!-- HEADER -->
+    <div class="p-4 border-b flex justify-between">
+      <h2 class="font-bold text-lg">Import Multiple PDF Files</h2>
+      <button class="text-xl font-bold" (click)="closeModal()" [disabled]="uploading">×</button>
+    </div>
+
+    <!-- BODY -->
+    <div class="p-4 space-y-3 overflow-y-auto max-h-[70vh]">
+
+      <input type="file" multiple accept=".pdf"
+             (change)="onFilesSelected($event)"
+             class="ti-form-input border rounded p-2 w-full" />
+
+      <div class="space-y-3">
+        <div *ngFor="let f of files" class="border rounded p-2 bg-gray-50">
+          <div class="flex justify-between text-sm font-semibold">
+            <span class="truncate w-2/3">{{ f.file.name }}</span>
+            <span class="text-xs">{{ f.file.size / 1024 | number:'1.0-0' }} KB</span>
+          </div>
+
+          <div class="text-xs"
+               [ngClass]="{'text-green-700': f.decoded.year, 'text-red-600': !f.decoded.year}">
+            <ng-container *ngIf="f.decoded.year; else invalid">
+              ✔ {{ f.decoded.year }} | {{ f.decoded.examCode }} | {{ f.decoded.center }} | batch {{ f.decoded.batch }}
+            </ng-container>
+            <ng-template #invalid>
+              ⚠ Invalid filename format
+            </ng-template>
+          </div>
+
+          <!-- PROGRESS BAR -->
+          <div *ngIf="f.status !== 'waiting'" class="mt-2">
+            <div class="w-full bg-gray-200 h-2 rounded">
+              <div class="bg-primary h-2 rounded" [style.width.%]="f.progress"></div>
+            </div>
+            <p class="text-[11px] mt-1">{{ f.status }} {{ f.progress }}%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="p-3 border-t flex justify-between">
+      <button class="ti-btn ti-btn-light" (click)="closeModal()" [disabled]="uploading">
+        Close
+      </button>
+
+      <button class="ti-btn ti-btn-primary"
+              (click)="uploadAll()"
+              [disabled]="files.length === 0 || uploading">
+        {{ uploading ? 'Uploading...' : 'Upload All' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION MODAL -->
+<div *ngIf="confirmOpen"
+     class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+  <div class="bg-white p-5 rounded shadow-lg w-[350px]">
+    <p class="text-sm pb-3">Start importing {{ files.length }} file(s)?</p>
+    <div class="flex justify-end gap-2">
+      <button class="ti-btn ti-btn-light" (click)="confirmOpen=false">Cancel</button>
+      <button class="ti-btn ti-btn-primary" (click)="confirmUpload()">Confirm</button>
+    </div>
+  </div>
+</div>

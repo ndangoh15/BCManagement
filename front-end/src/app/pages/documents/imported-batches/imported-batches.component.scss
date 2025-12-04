@@ -1,3 +1,5 @@
-.box {
-  margin-top: 20px;
+@media (min-width: 480px) {
+  .ti-modal .ti-modal-box {
+      max-width: 90% !important;
+  }
 }

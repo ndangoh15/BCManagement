@@ -6,6 +6,7 @@ using Domain.InterfacesServices.Security;
 using Domain.InterfacesStores.Security;
 using Microsoft.Extensions.DependencyInjection;
 using Application.Features.CandDocs.Commands;
+using Application.Features.CandDocs.Queries;
 
 namespace Application
 {
@@ -33,8 +34,9 @@ namespace Application
             services.AddScoped<UploadBatchHandler>();
             //services.AddScoped<SearchDocumentHandler>();
             services.AddScoped<ExtractOcrFromPage1Handler>();
+            services.AddScoped<GetImportedBatchesHandler>();
 
-    
+
             return services;
         }
     }

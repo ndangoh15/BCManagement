@@ -1,11 +1,12 @@
 ﻿using Application.Features.CandDocs.Commands;
+using Application.Features.CandDocs.Queries;
 using Domain.DTO.CandDocs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/document")]
     public class DocumentController : ControllerBase
     {
         private readonly UploadBatchHandler _handler;
@@ -46,6 +47,53 @@ namespace WebApi.Controllers
             return Ok(res);
         }
 
-        
+        [HttpPost("upload-multiple")]
+        public async Task<IActionResult> UploadMultiple([FromForm] UploadDocumentsDto form)
+        {
+            if (form.Files == null || form.Files.Count == 0)
+                return BadRequest("Please select at least one PDF file.");
+
+            string uploadFolder = Path.Combine("Uploads", form.ExamYear.ToString(), form.ExamCode, form.CenterNumber);
+            Directory.CreateDirectory(uploadFolder);
+
+            List<string> serverFilePaths = new();
+
+            foreach (var file in form.Files)
+            {
+                string filePath = Path.Combine(uploadFolder, file.FileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                serverFilePaths.Add(filePath);
+            }
+
+            var results = await _handler.HandleMultipleFilesAsync(
+                serverFilePaths,
+                form.ExamYear,
+                form.ExamCode,
+                form.CenterNumber,
+                form.UploadedBy ?? 2
+            );
+
+            return Ok(new
+            {
+                message = $"{results.Count} files processed",
+                results
+            });
+        }
+
+        [HttpGet("imported-batches")]
+        public async Task<IActionResult> GetImportedBatches(
+            [FromServices] GetImportedBatchesHandler handler)
+        {
+            var batches = await handler.HandleAsync();
+            return Ok(batches);
+        }
+
+
+
     }
 }

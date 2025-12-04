@@ -148,7 +148,7 @@ export class DocumentService {
             }
         }
 
-        let localVarPath = `/api/Document/imported-batches`;
+        let localVarPath = `/api/document/imported-batches`;
         return this.httpClient.request<any>('get', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
@@ -246,7 +246,7 @@ export class DocumentService {
             }
         }
 
-        let localVarPath = `/api/Document/upload`;
+        let localVarPath = `/api/document/upload`;
         return this.httpClient.request<any>('post', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
@@ -347,7 +347,7 @@ export class DocumentService {
             }
         }
 
-        let localVarPath = `/api/Document/upload-multiple`;
+        let localVarPath = `/api/document/upload-multiple`;
         return this.httpClient.request<any>('post', `${this.configuration.basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,

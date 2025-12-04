@@ -3,10 +3,7 @@ using Domain.DTO.CandDocs;
 using Domain.Entities.CandDocs;
 using Domain.InterfacesServices.CandDocs;
 using Domain.InterfacesStores.CandDocs;
-using System.Text.RegularExpressions;
 using Domain.Models.CandDocs;
-using Quartz.Util;
-using System;
 using Infrastructure.Context;
 
 namespace Application.Features.CandDocs.Commands
@@ -134,7 +131,7 @@ namespace Application.Features.CandDocs.Commands
                         OcrText = ocrText,
                         IsValid = isValid,
                         CreatedAt = DateTime.UtcNow,
-                        UserId = request.UploadedBy,
+                        UserId = request.UploadedBy ,
                         ExamCode=request.ExamCode
                     };
 
@@ -262,6 +259,39 @@ namespace Application.Features.CandDocs.Commands
             return string.Join("; ", errors);
         }
 
+
+        public async Task<List<UploadBatchResult>> HandleMultipleAsync(List<UploadBatchRequestDTO> requests)
+        {
+            var results = new List<UploadBatchResult>();
+
+            foreach (var req in requests)
+            {
+                // 🔥 Reuse your existing handler
+                var result = await HandleAsync(req);
+                results.Add(result);
+            }
+
+            return results;
+        }
+
+        public async Task<List<UploadBatchResult>> HandleMultipleFilesAsync(List<string> serverFilePaths, int examYear, string examCode, string centerNumber, int uploadedBy)
+        {
+            var list = new List<UploadBatchRequestDTO>();
+
+            foreach (var path in serverFilePaths)
+            {
+                list.Add(new UploadBatchRequestDTO
+                {
+                    ServerSourceFilePath = path,
+                    ExamYear = examYear,
+                    ExamCode = examCode,
+                    CenterNumber = centerNumber,
+                    UploadedBy = uploadedBy
+                });
+            }
+
+            return await HandleMultipleAsync(list);
+        }
 
     }
 }

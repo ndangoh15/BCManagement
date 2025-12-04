@@ -23,4 +23,5 @@ private apiUrl = '/api/document/imported-batches';
   getBatches(): Observable<ImportedBatch[]> {
     return this.http.get<ImportedBatch[]>(this.apiUrl);
   }
+  
 }

@@ -1,55 +1,50 @@
-import { Component, OnInit } from '@angular/core';
-import { ColDef } from 'ag-grid-community';
-import { openModal } from 'src/app/helper/helper-function';
-import { ImportedBatch, ImportedBatchesService } from 'src/app/services/documents/imported-batches.service';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { ColDef, GridApi } from 'ag-grid-community';
+import { DocumentService } from 'src/app/generated';
 
 @Component({
   selector: 'app-imported-batches',
   templateUrl: './imported-batches.component.html',
-  styleUrls: ['./imported-batches.component.scss']
 })
 export class ImportedBatchesComponent implements OnInit {
 
-  batches: ImportedBatch[] = [];
+  rowData: any[] = [];
+  importModalOpen = false;
+  public gridApi!: GridApi;
 
-  columnDefs: ColDef[] = [
-    { headerName: 'ID', field: 'id', width: 80 },
-    { headerName: 'File Name', field: 'fileName', flex: 2 },
-    { headerName: 'Exam Year', field: 'examYear' },
-    { headerName: 'Exam Code', field: 'examCode' },
-    { headerName: 'Center Number', field: 'centreNumber' },
-    { 
-      headerName: 'Imported At', 
-      field: 'importedAt',
-      valueFormatter: p => new Date(p.value).toLocaleString()
-    }
+  public columnDefs: ColDef[] = [
+    { field: "fileName" },
+    { field: "examYear" },
+    { field: "examCode" },
+    { field: "centreNumber" },
+    { field: "importedAt" },
   ];
+@ViewChild('importModal') importModal: any;
 
-  defaultColDef: ColDef = {
+  public defaultColDef: ColDef = {
     sortable: true,
     filter: true,
-    resizable: true
+    flex: 1,
   };
+  public paginationPageSize = 10;
 
-  constructor(
-    private batchService: ImportedBatchesService
-  ) {}
+  constructor(private docService: DocumentService) {}
 
   ngOnInit(): void {
-    this.loadBatches();
+    this.refreshData();
   }
 
-  loadBatches() {
-    this.batchService.getBatches().subscribe({
-      next: (data) => this.batches = data,
-      error: (err) => console.error('Error loading batches', err)
-    });
+  onGridReady(params: any) {
+    this.gridApi = params.api;
+    params.api.sizeColumnsToFit();
   }
 
-  importNewFiles() {
-    alert("TODO → ouvrir la popup d'import 👌");
+  refreshData() {
+    this.docService.documentControllerGetImportedBatches()
+      .subscribe(res => this.rowData = res);
   }
+
   openImportModal() {
-    openModal('import-multiple-modal');
+    this.importModalOpen = true;
   }
 }

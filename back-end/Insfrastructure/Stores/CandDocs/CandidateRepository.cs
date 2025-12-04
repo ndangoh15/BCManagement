@@ -1,4 +1,5 @@
-﻿using Domain.Entities.CandDocs;
+﻿using Domain.DTO.CandDocs;
+using Domain.Entities.CandDocs;
 using Domain.InterfacesStores.CandDocs;
 using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
@@ -81,6 +82,23 @@ namespace Infrastructure.Repositories.CandDocs
             _ctx.ImportedBatchLogs.Add(log);
             await _ctx.SaveChangesAsync();
         }
+
+        public async Task<List<ImportedBatchDTO>> GetImportedBatchesAsync()
+        {
+            return await _ctx.ImportedBatchLogs
+                .OrderByDescending(x => x.ImportedAt)
+                .Select(x => new ImportedBatchDTO
+                {
+                    Id = x.Id,
+                    FileName = x.FileName,
+                    ExamYear = x.ExamYear,
+                    ExamCode = x.ExamCode,
+                    CentreNumber = x.CentreNumber,
+                    ImportedAt = x.ImportedAt
+                })
+                .ToListAsync();
+        }
+
     }
 }
 

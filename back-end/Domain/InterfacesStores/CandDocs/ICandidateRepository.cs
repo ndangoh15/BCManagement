@@ -1,4 +1,5 @@
-﻿using Domain.Entities.CandDocs;
+﻿using Domain.DTO.CandDocs;
+using Domain.Entities.CandDocs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,5 +20,6 @@ namespace Domain.InterfacesStores.CandDocs
         Task<bool> HasBatchBeenImportedAsync(string fileName, int year, string examCode, string center);
         Task DeleteDocumentsForBatchAsync(int year, string examCode, string center);
         Task LogImportedBatchAsync(string fileName, int year, string examCode, string center);
+        Task<List<ImportedBatchDTO>> GetImportedBatchesAsync();
     }
 }
