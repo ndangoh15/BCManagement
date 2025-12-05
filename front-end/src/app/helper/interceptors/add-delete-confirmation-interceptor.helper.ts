@@ -32,6 +32,10 @@ export class ConfirmationInterceptor implements HttpInterceptor {
 
       if (req.method === 'PUT' || req.method === 'POST') {
 
+        // 🚫 No confirmation for import/upload requests
+        if (req.url.includes('upload') || req.url.includes('upload-multiple')) {
+          return next.handle(req);
+        }
         if (!req.url.includes('login')) {
           removeLoadingClass()
           // Convert Promise to Observable using `from`
@@ -51,7 +55,6 @@ export class ConfirmationInterceptor implements HttpInterceptor {
           );
         }
       }
-
 
     // Pass through for other requests
     return next.handle(req);

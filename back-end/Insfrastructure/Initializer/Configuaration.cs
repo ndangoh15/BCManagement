@@ -120,6 +120,8 @@ namespace Infrastructure.Initialiser
                 // CONFIGURATION SYSTEM
                 new { Code = "CONFIG_COMPANY", Label = "Company", Controller = "Company", Path = "config/company", ModuleCode = "MODULE_CONFIGURATION" },
             
+                 // DOCUMENT IMPORTATION
+                new { Code = "DOCUMENT_IMPORT", Label = "Document", Controller = "Document", Path = "documents/imported-batches", ModuleCode = "MODULE_ADMINISTRATION" },
             };
 
             var menuCodesInConfig = menus.Select(m => m.Code).ToHashSet();

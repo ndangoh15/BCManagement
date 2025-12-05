@@ -21,5 +21,6 @@ namespace Domain.InterfacesStores.CandDocs
         Task DeleteDocumentsForBatchAsync(int year, string examCode, string center);
         Task LogImportedBatchAsync(string fileName, int year, string examCode, string center);
         Task<List<ImportedBatchDTO>> GetImportedBatchesAsync();
+        Task<List<ImportedFilesDto>> GetImportedFilesAsync(List<string> fileNames);
     }
 }

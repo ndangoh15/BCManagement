@@ -21,5 +21,9 @@ namespace Application.Features.CandDocs.Queries
         {
             return await _repo.GetImportedBatchesAsync();
         }
+        public async Task<List<ImportedFilesDto>> HandleImportedFilesAsync (List<string> fileNames)
+        {
+            return await _repo.GetImportedFilesAsync(fileNames);
+        }
     }
 }

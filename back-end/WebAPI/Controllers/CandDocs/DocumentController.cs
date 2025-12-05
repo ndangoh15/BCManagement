@@ -11,10 +11,12 @@ namespace WebApi.Controllers
     {
         private readonly UploadBatchHandler _handler;
         private readonly IConfiguration _config;
-        public DocumentController(IConfiguration config, UploadBatchHandler handler)
+        private readonly GetImportedBatchesHandler _checkHandler;
+        public DocumentController(IConfiguration config, UploadBatchHandler handler, GetImportedBatchesHandler checkHandler)
         {
             _handler = handler;
             _config = config;
+            _checkHandler = checkHandler;
         }
 
         [HttpPost("upload")]
@@ -93,7 +95,12 @@ namespace WebApi.Controllers
             return Ok(batches);
         }
 
-
+        [HttpPost("check-exists")]
+        public async Task<IActionResult> CheckIfAlreadyImported([FromBody] List<string> fileNames)
+        {
+            var existing = await _checkHandler.HandleImportedFilesAsync(fileNames);
+            return Ok(existing);
+        }
 
     }
 }

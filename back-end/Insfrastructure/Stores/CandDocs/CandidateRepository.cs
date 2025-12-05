@@ -99,6 +99,17 @@ namespace Infrastructure.Repositories.CandDocs
                 .ToListAsync();
         }
 
+        public async Task<List<ImportedFilesDto>> GetImportedFilesAsync(List<string> fileNames)
+        {
+            return await _ctx.ImportedBatchLogs
+                .Where(x => fileNames.Contains(x.FileName))
+               .Select(x => new ImportedFilesDto
+                {
+                   fileNames = x.FileName
+                })
+                .ToListAsync();
+        }
+
     }
 }
 

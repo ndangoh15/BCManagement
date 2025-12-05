@@ -39,6 +39,7 @@ namespace Infrastructure.Services.CandDocs
             cleaned = cleaned.Replace("C.LLN", "CIN");
             cleaned = cleaned.Replace("C.LN", "CIN");
             cleaned = cleaned.Replace("C.1.N", "CIN");
+            cleaned = cleaned.Replace("C.L.N", "CIN");
 
             // unify "Examination Centre" variants
             cleaned = Regex.Replace(cleaned, @"Examination\s*Cent(er|re)\s*[:\-]?", "EXAMINATION_CENTRE:", RegexOptions.IgnoreCase);
