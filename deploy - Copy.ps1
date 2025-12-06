@@ -1,18 +1,18 @@
 # === 🔧 VARIABLES
-$server = "yao-val-dc01"
-$username = "VALDCOM\Administrator"
-$password = "Vdl!@?192341"
+$server = "CS-PROG01"
+$username = "CS-PROG0\admin"
+$password = "cGCEb@2021"
 
-$angularProjectPath = "C:\Users\HP\Desktop\Valdoz\ClinicSystem\front-end"
-$dotnetProjectPath = "C:\Users\LENOVO\Desktop\Vadoz Folder\Clinic\back-end\WebAPI"
+$angularProjectPath = "D:\GCEB PROJECT\BirthCertificateScanner\BCManagement\front-end"
+$dotnetProjectPath = "D:\GCEB PROJECT\BirthCertificateScanner\BCManagement\back-end\WebAPI"
 
-$angularBuildOutput = "C:\inetpub\wwwroot\enject_temp"
-$dotnetBuildOutput = "C:\inetpub\wwwroot\EnjectManagementAPI_temp"
+$angularBuildOutput = "C:\inetpub\wwwroot\gcebc_temp"
+$dotnetBuildOutput = "C:\inetpub\wwwroot\gcebcManagementAPI_temp"
 
-$angularRemotePath = "Z:\inetpub\wwwroot\enject"
-$dotnetRemotePath = "Z:\inetpub\wwwroot\EnjectManagementAPI"
-$dotnetRemoteTemp = "Z:\inetpub\wwwroot\EnjectManagementAPI_temp"
-$dotnetRemoteBackup = "Z:\inetpub\wwwroot\EnjectManagementAPI_old"
+$angularRemotePath = "\\$server\C$\inetpub\wwwroot\gcebc"
+$dotnetRemotePath = "\\$server\C$\inetpub\wwwroot\gcebcManagementAPI"
+$dotnetRemoteTemp = "\\$server\C$\inetpub\wwwroot\gcebcManagementAPI_temp"
+$dotnetRemoteBackup = "\\$server\C$\inetpub\wwwroot\gcebcManagementAPI_old"
 
 # === 🔐 CREDENTIALS
 $securePassword = ConvertTo-SecureString $password -AsPlainText -Force
@@ -21,7 +21,7 @@ $credential = New-Object System.Management.Automation.PSCredential ($username, $
 # === [1/6] BUILD ANGULAR
 Write-Host "`n[1/6] Build Angular..."
 Set-Location $angularProjectPath
-ng build --output-path "$angularBuildOutput" --configuration=production --base-href /enject/
+ng build --output-path "$angularBuildOutput" --configuration=production --base-href /gcebc/
 
 # === [2/6] BUILD .NET CORE
 Write-Host "`n[2/6] Build .NET Core..."
@@ -67,12 +67,12 @@ if (Test-Path $dotnetRemoteBackup) {
 # 4. Renommer API actuelle → backup
 if (Test-Path $dotnetRemotePath) {
     Write-Host "[5d] Renommage API actuelle → backup..."
-    Rename-Item -Path $dotnetRemotePath -NewName "EnjectManagementAPI_old"
+    Rename-Item -Path $dotnetRemotePath -NewName "gcebcManagementAPI_old"
 }
 
 # 5. Renommer temp → API active
 Write-Host "[5e] Activation du nouveau build..."
-Rename-Item -Path $dotnetRemoteTemp -NewName "EnjectManagementAPI"
+Rename-Item -Path $dotnetRemoteTemp -NewName "gcebcManagementAPI"
 
 # 6. Redémarrer IIS
 Write-Host "[5f] Redémarrage de IIS..."

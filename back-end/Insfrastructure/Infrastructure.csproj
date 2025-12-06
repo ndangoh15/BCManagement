@@ -8,13 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="tessdata\eng.traineddata" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="tessdata\eng.traineddata">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Compile Remove="tessdata\**" />
+    <EmbeddedResource Remove="tessdata\**" />
+    <None Remove="tessdata\**" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,5 +1,10 @@
-export const environment = {
+/*export const environment = {
   production: false,
-  apiUrl: 'http://yao-val-dc01:8000',
+  apiUrl: 'http://localhost:8000',
+  appVersion: '1.0.0'
+};*/
+export const environment = {
+  production: true,
+  apiUrl: 'http://gcebc.local/api',
   appVersion: '1.0.0'
 };

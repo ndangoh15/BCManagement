@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <Content Include="tessdata\eng.traineddata">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
@@ -34,9 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="tessdata\fra.traineddata">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
+    <None Include="tessdata\**\*" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
 </Project>
