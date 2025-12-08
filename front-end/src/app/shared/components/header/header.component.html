@@ -97,7 +97,7 @@
               </div>
             </div>
 
-            Welcome {{current_user.name}}. Business Day {{current_bd}}
+            Welcome {{current_user?.name}}. Business Day {{current_bd}}
 
 
             <div class="header-theme-mode hidden sm:block" appToggleTheme>
@@ -161,7 +161,7 @@
                   </div>
                   <div>
                     <p class="ti-dropdown-header-title !text-white">
-                      {{current_user.name}} {{current_user.description}}
+                      {{current_user?.name}} {{current_user?.description}}
                     </p>
 
                   </div>

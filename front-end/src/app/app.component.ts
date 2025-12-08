@@ -36,7 +36,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     const newElement = this.renderer.createElement('html');
     this.renderer.appendChild(document.body, newElement);
 
-    if(this.authService.isLogged()){
+    /*if(this.authService.isLogged()){
       try{
         const user = await this.authService.getCurrentUser();
         if (!user) {
@@ -45,10 +45,20 @@ export class AppComponent implements OnInit, AfterViewInit {
       }catch (e) {
         this.authService.logout();
       }
+    }*/
+  const isLoginPage = this.router.url.includes('login');
 
-
+    // ✅ Ne vérifier l'utilisateur QUE si connecté ET pas sur /login
+    if (this.authService.isLogged() && !isLoginPage) {
+      try {
+        const user = await this.authService.getCurrentUser();
+        if (!user) {
+          this.authService.logout();
+        }
+      } catch (e) {
+        this.authService.logout();
+      }
     }
-
 
 
     // Listen for route changes and reapply the theme
@@ -81,7 +91,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     setInterval(() => {
       if (environment.production){
         this.http
-        .get('/GCEBC/assets/version.json', {
+        .get('/GCEBC/GCEBC_Front/assets/version.json', {
           headers: { 'Cache-Control': 'no-cache' },
         })
         .subscribe((data: any) => {

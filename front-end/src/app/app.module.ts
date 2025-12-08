@@ -23,6 +23,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { ConfigError } from './config.error';
 import { environment } from 'src/environments/environment';
 import { RefraicheComponent } from './pages/component/refraiche-page/refraiche.component';
+import { AuthExpiredInterceptor } from './helper/interceptors/auth-expired-interceptor';
 
 
 
@@ -51,7 +52,7 @@ import { RefraicheComponent } from './pages/component/refraiche-page/refraiche.c
     ApiModule.forRoot(() => new Configuration({ basePath: environment.apiUrl })),
   ],
 
-  providers: [
+  /*providers: [
     provideHttpClient(withInterceptorsFromDi()),
     AuthentificationService,
     UserService,
@@ -69,7 +70,17 @@ import { RefraicheComponent } from './pages/component/refraiche-page/refraiche.c
     },
 
     provideZoneChangeDetection({ eventCoalescing: true })
-  ],
+  ]*/
+  providers: [
+  provideHttpClient(withInterceptorsFromDi()),
+  { provide: HTTP_INTERCEPTORS, useClass: AddTokenInterceptor, multi: true },
+  { provide: HTTP_INTERCEPTORS, useClass: ConfirmationInterceptor, multi: true },
+  { provide: HTTP_INTERCEPTORS, useClass: ToastInterceptor, multi: true },
+  { provide: HTTP_INTERCEPTORS, useClass: AuthExpiredInterceptor, multi: true },
+  provideZoneChangeDetection({ eventCoalescing: true })
+]
+
+    ,
 
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   bootstrap: [AppComponent],

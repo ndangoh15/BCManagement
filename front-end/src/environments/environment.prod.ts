@@ -5,6 +5,6 @@
 };*/
 export const environment = {
   production: true,
-  apiUrl: 'http://gcebc.local/api',
+  apiUrl: 'http://gcebc.local',
   appVersion: '1.0.0'
 };

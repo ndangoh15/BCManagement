@@ -128,7 +128,7 @@
     "CONFIG_OTHER": "Others",
     "CONTRACT_TYPE": "Contract types",
     "LEAVE_TYPE": "Leaves types",
-    "CERTIFICATIONS_TYPE": "Certifications types",
+    "DOCUMENT_IMPORT": "Import Pdf Files",
     "COMP_CERTIFICATIONS":"Certifications"
   }
 }

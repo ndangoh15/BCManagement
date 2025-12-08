@@ -316,7 +316,7 @@
         "deletedBordero":"Deleted Bordero",
     "c_Examen":"Examen",
     "ValidateExamSale":"Validate Exam Sale",
-    "ValidateMedicamentSale":"Validate Medicament Sale"
-
+    "ValidateMedicamentSale":"Validate Medicament Sale",
+    "DOCUMENT_IMPORT": "Importation fichiers Pdf"
   }
 }

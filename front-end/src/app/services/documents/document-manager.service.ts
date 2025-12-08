@@ -10,6 +10,7 @@ export class DocumentManagerService {
 
   // Liste des fichiers importés (pour rafraîchir UI)
   documentListSubject = new Subject<void>();
+  authService: any;
 
   constructor(private documentService: DocumentService) {}
 
@@ -18,13 +19,14 @@ export class DocumentManagerService {
   }
 
   // Upload SEQUENTIEL avec reportProgress
-  uploadSingleFile(file: File, decoded: any) {
+  async uploadSingleFile(file: File, decoded: any) {
+    const user = await this.authService.getCurrentUser();
     return this.documentService.documentControllerUploadMultiple(
       [file],
       decoded.year,
       decoded.examCode,
       decoded.center,
-      2,         // uploadedBy si tu veux
+      user,         // uploadedBy si tu veux
       'events',          // clé pour activer event upload
       true               // reportProgress = true
     );

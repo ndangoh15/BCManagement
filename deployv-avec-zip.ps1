@@ -24,11 +24,23 @@ $dotnetProjectPath  = "D:\GCEB PROJECT\BirthCertificateScanner\BCManagement\back
 
 
 # On supprime Z: s'il existe déjà
-if (Get-PSDrive -Name "Z" -ErrorAction SilentlyContinue) {
-	Start-Sleep -Seconds 2
-    Remove-PSDrive -Name "Z" -Force
-}
-New-PSDrive -Name "Z" -PSProvider FileSystem -Root "\\$server\C$" -Persist | Out-Null
+#net use Z: /delete /y | Out-Null
+#Start-Sleep -Seconds 1
+#if (Get-PSDrive -Name "Z" -ErrorAction SilentlyContinue) {
+#    Remove-PSDrive -Name "Z" -Force
+#}
+
+#New-PSDrive -Name "Z" -PSProvider FileSystem -Root "\\$server\C$" | Out-Null
+
+# cleanup total
+net use Z: /delete /y | Out-Null
+Start-Sleep -Seconds 1
+Remove-PSDrive Z -Force -ErrorAction SilentlyContinue
+
+# fresh mount
+New-PSDrive -Name "Z" -PSProvider FileSystem -Root "\\$server\C$" | Out-Null
+
+
 
 # --- Chemins locaux de build (temp) ---
 # Ce sont juste des dossiers de sortie de build sur ta machine locale

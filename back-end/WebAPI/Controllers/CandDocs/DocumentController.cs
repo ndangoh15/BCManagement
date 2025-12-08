@@ -54,37 +54,41 @@ namespace WebApi.Controllers
         {
             if (form.Files == null || form.Files.Count == 0)
                 return BadRequest("Please select at least one PDF file.");
+            string currentFileName = "";
 
-            string uploadFolder = Path.Combine("Uploads", form.ExamYear.ToString(), form.ExamCode, form.CenterNumber);
-            Directory.CreateDirectory(uploadFolder);
-
-            List<string> serverFilePaths = new();
-
-            foreach (var file in form.Files)
+            try
             {
-                string filePath = Path.Combine(uploadFolder, file.FileName);
+                string uploadFolder = Path.Combine("Uploads", form.ExamYear.ToString(), form.ExamCode, form.CenterNumber);
+                    Directory.CreateDirectory(uploadFolder);
+                    List<string> serverFilePaths = new();
+                    foreach (var file in form.Files)
+                    {
+                        currentFileName = file.FileName; // <-- capture here
+                        string filePath = Path.Combine(uploadFolder, file.FileName);
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+
+                        serverFilePaths.Add(filePath);
+                    }
+                    var results = await _handler.HandleMultipleFilesAsync(serverFilePaths,form.ExamYear,form.ExamCode,form.CenterNumber,form.UploadedBy ?? 2 );
+                    return Ok(new
+                    {
+                        message = $"{results.Count} files processed",
+                        results
+                    });
                 }
-
-                serverFilePaths.Add(filePath);
-            }
-
-            var results = await _handler.HandleMultipleFilesAsync(
-                serverFilePaths,
-                form.ExamYear,
-                form.ExamCode,
-                form.CenterNumber,
-                form.UploadedBy ?? 2
-            );
-
-            return Ok(new
+            catch (Exception ex)
             {
-                message = $"{results.Count} files processed",
-                results
-            });
+                // log exact error
+                return BadRequest(new {
+                    message = "Corrupted or unreadable PDF",
+                    file = currentFileName,           // now you know exactly which file
+                    error = ex.Message
+                });
+            }
         }
 
         [HttpGet("imported-batches")]

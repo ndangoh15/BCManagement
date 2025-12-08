@@ -1,26 +1,36 @@
-import { AuthService } from '../../services/auth.service';
 import { Injectable } from '@angular/core';
-import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
+import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { addLoadingClass } from '../error-succes-tost';
+import * as CONST from '../../app-const';
 
 @Injectable()
 export class AddTokenInterceptor implements HttpInterceptor {
 
-  constructor(private authService: AuthService) { }
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // add authorization header with token if available
-    if (!request.url.includes('filter'))
-      addLoadingClass()
-    if (!request.headers.get('Authorization')) {
-      request = request.clone({
-        setHeaders: {
-          Authorization: `Bearer ${this.authService.getAccessToken()}`
-        },
-        withCredentials: false
+    const token = localStorage.getItem(CONST.TOKEN_VALUE);
+
+    // 🚫 Ignore ONLY exact login endpoints
+    if (
+      req.url.includes('/login') ||
+      req.url.includes('/auth/login') ||
+      req.url.includes('/authentication/login')
+    ) {
+      return next.handle(req);
+    }
+
+    // 🚫 Upload/import → pas de token obligatoire
+    if (req.url.includes('/upload') || req.url.includes('/import')) {
+      return next.handle(req);
+    }
+
+    // ✔ attach token for every secured call
+    if (token) {
+      req = req.clone({
+        setHeaders: { Authorization: `Bearer ${token}` }
       });
     }
-    return next.handle(request);
+
+    return next.handle(req);
   }
 }

