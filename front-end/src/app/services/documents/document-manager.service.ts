@@ -19,8 +19,8 @@ export class DocumentManagerService {
   }
 
   // Upload SEQUENTIEL avec reportProgress
-  async uploadSingleFile(file: File, decoded: any) {
-    const user = await this.authService.getCurrentUser();
+  async uploadSingleFile(file: File, decoded: any,user:number) {
+    
     return this.documentService.documentControllerUploadMultiple(
       [file],
       decoded.year,

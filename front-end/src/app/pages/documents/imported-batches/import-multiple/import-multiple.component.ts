@@ -35,11 +35,18 @@ export class ImportMultipleComponent {
   // stats pour le toast final
   private successCount = 0;
   private failedCount = 0;
+  authService: any;
 
   constructor(
     private docManager: DocumentManagerService,
     private toastr: ToastrService
   ) {}
+
+  private currentUser!: number;
+
+async ngOnInit() {
+  this.currentUser = await this.authService.getCurrentUser();
+}
 
   // -------------------------------------------------
   // FERMETURE MODALE
@@ -214,12 +221,12 @@ private finishUpload() {
 
 
   // Upload d’un fichier (promesse)
-   private uploadOne(f: ImportFile): Promise<void> {
+   private uploadOneOld(f: ImportFile): Promise<void> {
     f.status = 'uploading';
     f.progress = 0;
 
     return new Promise<void>(async (resolve) => {
-      (await this.docManager.uploadSingleFile(f.file, f.decoded)).subscribe({
+      (await this.docManager.uploadSingleFile(f.file, f.decoded,this.currentUser)).subscribe({
         next: (event: HttpEvent<any>) => {
           if (event.type === HttpEventType.UploadProgress) {
             const total = event.total ?? event.loaded;
@@ -245,12 +252,57 @@ private finishUpload() {
     });
   }
 
+    private uploadOne(f: ImportFile): Promise<void> {
+  f.status = 'uploading';
+  f.progress = 0;
+
+  return new Promise<void>(async (resolve) => {
+    (await this.docManager.uploadSingleFile(f.file, f.decoded,this.currentUser)).subscribe({
+      next: (event: HttpEvent<any>) => {
+
+        if (event.type === HttpEventType.UploadProgress) {
+
+          //  PROTECTION ABSOLUE
+          if (typeof event.loaded !== 'number') {
+            return;
+          }
+
+          if (typeof event.total === 'number' && event.total > 0) {
+            f.progress = Math.round((event.loaded / event.total) * 100);
+          } else {
+            // fallback IIS / prod
+            f.progress = 0;
+          }
+        }
+
+        if (event.type === HttpEventType.Response) {
+          f.status = 'done';
+          f.progress = 100;
+          this.successCount++;
+          resolve();
+        }
+      },
+
+      error: (err) => {
+        console.error('Upload error:', err);
+        f.status = 'failed';
+        this.failedCount++;
+        this.toastr.error(`Failed to import ${f.file.name}`, 'Error', {
+          timeOut: 3000,
+          progressBar: true,
+        });
+        resolve();
+      },
+    });
+  });
+}
+
 
   // -------------------------------------------------
   // GETTERS POUR L’UI
   // -------------------------------------------------
 get duplicateCount(): number {
-    return this.files.filter((f) => f.blocked).length;
+    return this.files?.filter(f => f.blocked).length ?? 0;
   }
 
   get validCount(): number {
@@ -274,7 +326,7 @@ get duplicateCount(): number {
     return Math.round(sum / valids.length);
   }
 }
-function resolve() {
+/*function resolve() {
   throw new Error('Function not implemented.');
-}
+}*/
 

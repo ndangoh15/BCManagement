@@ -80,7 +80,28 @@ builder.Services.AddSwaggerDocumentation();
 // ========================================
 // CORS
 // ========================================
-builder.Services.AddCors();
+//builder.Services.AddCors();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DevCors", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+
+    options.AddPolicy("ProdCors", policy =>
+    {
+        policy
+            .WithOrigins("http://gcebc.local", "http://api.gcebc.local")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 
 // ========================================
 // Database
@@ -101,6 +122,14 @@ builder.Services.AddApplicationServices();
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors("DevCors");
+}
+else
+{
+    app.UseCors("ProdCors");
+}
 // ======================================================
 // MIDDLEWARE: Allow large requests even when proxied
 // ======================================================
@@ -117,7 +146,7 @@ app.Use(async (context, next) =>
 // Configure Middleware Pipeline
 // ========================================
 app.ConfigureSwaggerUI();
-app.ConfigureCors();
+//app.ConfigureCors();
 
 // ========================================
 // Database Seeding

@@ -1,15 +1,11 @@
-import { UserService } from './generated';
 import {
   AfterViewInit,
   Component,
-  ElementRef,
   OnInit,
   Renderer2,
 } from '@angular/core';
 import { AuthService } from './services/auth.service';
-import { firstValueFrom } from 'rxjs';
 import { Router, NavigationEnd } from '@angular/router';
-import { COMPANY } from './app-const';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { openModal } from './helper/helper-function';
@@ -21,12 +17,10 @@ import { openModal } from './helper/helper-function';
 })
 export class AppComponent implements OnInit, AfterViewInit {
   constructor(
-    private elementRef: ElementRef,
     private router: Router,
     private renderer: Renderer2,
     private authService: AuthService,
-    private authentificationService: UserService,
-
+    
 
     private http:HttpClient
   ) {}
@@ -36,19 +30,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     const newElement = this.renderer.createElement('html');
     this.renderer.appendChild(document.body, newElement);
 
-    /*if(this.authService.isLogged()){
-      try{
-        const user = await this.authService.getCurrentUser();
-        if (!user) {
-          this.authService.logout();
-        }
-      }catch (e) {
-        this.authService.logout();
-      }
-    }*/
+   
   const isLoginPage = this.router.url.includes('login');
 
-    // ✅ Ne vérifier l'utilisateur QUE si connecté ET pas sur /login
+    //  Ne vérifier l'utilisateur QUE si connecté ET pas sur /login
     if (this.authService.isLogged() && !isLoginPage) {
       try {
         const user = await this.authService.getCurrentUser();
@@ -91,7 +76,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     setInterval(() => {
       if (environment.production){
         this.http
-        .get('/GCEBC/GCEBC_Front/assets/version.json', {
+        .get('/assets/version.json', {
           headers: { 'Cache-Control': 'no-cache' },
         })
         .subscribe((data: any) => {
