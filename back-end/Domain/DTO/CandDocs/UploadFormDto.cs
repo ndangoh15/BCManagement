@@ -15,6 +15,6 @@ namespace Domain.DTO.CandDocs
         public string ExamCode { get; set; } = "";
         public string CenterNumber { get; set; } = "";
 
-        public int UploadedBy { get; set; }   // you can replace with string username if needed
+        //public int UploadedBy { get; set; }   // you can replace with string username if needed
     }
 }

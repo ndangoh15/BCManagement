@@ -60,7 +60,7 @@ export class ImportedBatchesComponent implements OnInit {
 ngOnInit(): void {
   this.refreshData();
 
-  this.docManager.documentListSubject.subscribe(() => {
+  this.docManager.documentList$.subscribe(() => {
     this.refreshData();
   });
 }

@@ -20,9 +20,9 @@ export class AddTokenInterceptor implements HttpInterceptor {
     }
 
     // 🚫 Upload/import → pas de token obligatoire
-    if (req.url.includes('/upload') || req.url.includes('/import')) {
+    /*if (req.url.includes('/upload') || req.url.includes('/import')) {
       return next.handle(req);
-    }
+    }*/
 
     // ✔ attach token for every secured call
     if (token) {

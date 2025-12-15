@@ -4,6 +4,7 @@ import { HttpEvent, HttpEventType } from '@angular/common/http';
 import { DocumentManagerService } from 'src/app/services/documents/document-manager.service';
 import { firstValueFrom } from 'rxjs';
 
+
 //const MAX_PARALLEL_UPLOADS = 5;
 type ImportStatus = 'waiting' | 'uploading' | 'done' | 'failed' | 'duplicate' | 'invalid';
 interface ImportFile {
@@ -25,6 +26,7 @@ interface ImportFile {
   styleUrls: ['./import-multiple.component.scss'],
 })
 export class ImportMultipleComponent {
+  [x: string]: any;
   @Input() open = false;
   @Output() modalClosed = new EventEmitter<void>();
   @Output() uploaded = new EventEmitter<void>();
@@ -35,18 +37,15 @@ export class ImportMultipleComponent {
   // stats pour le toast final
   private successCount = 0;
   private failedCount = 0;
-  authService: any;
+
 
   constructor(
     private docManager: DocumentManagerService,
     private toastr: ToastrService
   ) {}
 
-  private currentUser!: number;
 
-async ngOnInit() {
-  this.currentUser = await this.authService.getCurrentUser();
-}
+
 
   // -------------------------------------------------
   // FERMETURE MODALE
@@ -220,44 +219,13 @@ private finishUpload() {
 
 
 
-  // Upload d’un fichier (promesse)
-   private uploadOneOld(f: ImportFile): Promise<void> {
-    f.status = 'uploading';
-    f.progress = 0;
-
-    return new Promise<void>(async (resolve) => {
-      (await this.docManager.uploadSingleFile(f.file, f.decoded,this.currentUser)).subscribe({
-        next: (event: HttpEvent<any>) => {
-          if (event.type === HttpEventType.UploadProgress) {
-            const total = event.total ?? event.loaded;
-            f.progress = Math.round((event.loaded / total) * 100);
-          }
-          if (event.type === HttpEventType.Response) {
-            f.status = 'done';
-            f.progress = 100;
-            this.successCount++;
-            resolve();
-          }
-        },
-        error: () => {
-          f.status = 'failed';
-          this.failedCount++;
-          this.toastr.error(`Failed to import ${f.file.name}`, 'Error', {
-            timeOut: 3000,
-            progressBar: true,
-          });
-          resolve();
-        },
-      });
-    });
-  }
 
     private uploadOne(f: ImportFile): Promise<void> {
   f.status = 'uploading';
   f.progress = 0;
 
   return new Promise<void>(async (resolve) => {
-    (await this.docManager.uploadSingleFile(f.file, f.decoded,this.currentUser)).subscribe({
+    (await this.docManager.uploadSingleFile(f.file, f.decoded)).subscribe({
       next: (event: HttpEvent<any>) => {
 
         if (event.type === HttpEventType.UploadProgress) {
@@ -283,7 +251,7 @@ private finishUpload() {
         }
       },
 
-      error: (err) => {
+      error: (err: any) => {
         console.error('Upload error:', err);
         f.status = 'failed';
         this.failedCount++;

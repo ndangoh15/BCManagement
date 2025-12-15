@@ -238,14 +238,13 @@ export class DocumentService {
      * @param examYear 
      * @param examCode 
      * @param centerNumber 
-     * @param uploadedBy 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public documentControllerUpload(file?: Blob, examYear?: number, examCode?: string, centerNumber?: string, uploadedBy?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any>;
-    public documentControllerUpload(file?: Blob, examYear?: number, examCode?: string, centerNumber?: string, uploadedBy?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpResponse<any>>;
-    public documentControllerUpload(file?: Blob, examYear?: number, examCode?: string, centerNumber?: string, uploadedBy?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpEvent<any>>;
-    public documentControllerUpload(file?: Blob, examYear?: number, examCode?: string, centerNumber?: string, uploadedBy?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any> {
+    public documentControllerUpload(file?: Blob, examYear?: number, examCode?: string, centerNumber?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any>;
+    public documentControllerUpload(file?: Blob, examYear?: number, examCode?: string, centerNumber?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpResponse<any>>;
+    public documentControllerUpload(file?: Blob, examYear?: number, examCode?: string, centerNumber?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpEvent<any>>;
+    public documentControllerUpload(file?: Blob, examYear?: number, examCode?: string, centerNumber?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any> {
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -303,9 +302,6 @@ export class DocumentService {
         if (centerNumber !== undefined) {
             localVarFormParams = localVarFormParams.append('CenterNumber', <any>centerNumber) as any || localVarFormParams;
         }
-        if (uploadedBy !== undefined) {
-            localVarFormParams = localVarFormParams.append('UploadedBy', <any>uploadedBy) as any || localVarFormParams;
-        }
 
         let responseType_: 'text' | 'json' | 'blob' = 'json';
         if (localVarHttpHeaderAcceptSelected) {
@@ -337,14 +333,13 @@ export class DocumentService {
      * @param examYear 
      * @param examCode 
      * @param centerNumber 
-     * @param uploadedBy 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public documentControllerUploadMultiple(files?: Array<Blob>, examYear?: number, examCode?: string, centerNumber?: string, uploadedBy?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any>;
-    public documentControllerUploadMultiple(files?: Array<Blob>, examYear?: number, examCode?: string, centerNumber?: string, uploadedBy?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpResponse<any>>;
-    public documentControllerUploadMultiple(files?: Array<Blob>, examYear?: number, examCode?: string, centerNumber?: string, uploadedBy?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpEvent<any>>;
-    public documentControllerUploadMultiple(files?: Array<Blob>, examYear?: number, examCode?: string, centerNumber?: string, uploadedBy?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any> {
+    public documentControllerUploadMultiple(files?: Array<Blob>, examYear?: number, examCode?: string, centerNumber?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any>;
+    public documentControllerUploadMultiple(files?: Array<Blob>, examYear?: number, examCode?: string, centerNumber?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpResponse<any>>;
+    public documentControllerUploadMultiple(files?: Array<Blob>, examYear?: number, examCode?: string, centerNumber?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<HttpEvent<any>>;
+    public documentControllerUploadMultiple(files?: Array<Blob>, examYear?: number, examCode?: string, centerNumber?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext}): Observable<any> {
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -403,9 +398,6 @@ export class DocumentService {
         }
         if (centerNumber !== undefined) {
             localVarFormParams = localVarFormParams.append('CenterNumber', <any>centerNumber) as any || localVarFormParams;
-        }
-        if (uploadedBy !== undefined) {
-            localVarFormParams = localVarFormParams.append('UploadedBy', <any>uploadedBy) as any || localVarFormParams;
         }
 
         let responseType_: 'text' | 'json' | 'blob' = 'json';

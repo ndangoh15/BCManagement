@@ -1,10 +1,12 @@
-﻿using Infrastructure.Services.CandDocs;
-using Domain.DTO.CandDocs;
+﻿using Domain.DTO.CandDocs;
 using Domain.Entities.CandDocs;
 using Domain.InterfacesServices.CandDocs;
 using Domain.InterfacesStores.CandDocs;
 using Domain.Models.CandDocs;
 using Infrastructure.Context;
+using Infrastructure.Services.CandDocs;
+using iText.Kernel.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Features.CandDocs.Commands
 {
@@ -15,14 +17,16 @@ namespace Application.Features.CandDocs.Commands
         private readonly ICandidateRepository _repo;
         private readonly ICandidateParser _candidateParser;
         private readonly FsContext _db;
+        private readonly ILogger<UploadBatchHandler> _logger;
 
-        public UploadBatchHandler(IFileStore fileStore, ITesseractService ocr, ICandidateRepository repo, ICandidateParser candidateParser, FsContext db)
+        public UploadBatchHandler(IFileStore fileStore, ITesseractService ocr, ICandidateRepository repo, ICandidateParser candidateParser, FsContext db, ILogger<UploadBatchHandler> logger)
         {
             _fileStore = fileStore;
             _ocr = ocr;
             _repo = repo;   
             _candidateParser = candidateParser;
             _db = db;
+            _logger = logger;
         }
 
         public async Task<UploadBatchResult> HandleAsync(UploadBatchRequestDTO request)
@@ -56,6 +60,7 @@ namespace Application.Features.CandDocs.Commands
                 // ----------------------------------------------------------
                 byte[] originalBytes = await File.ReadAllBytesAsync(request.ServerSourceFilePath);
 
+                
                 // ----------------------------------------------------------
                 // 2. SPLIT INTO SINGLE PAGES (PAGE 1 + PAGE 2)
                 // ----------------------------------------------------------
@@ -187,11 +192,36 @@ namespace Application.Features.CandDocs.Commands
                 // Everything OK → commit!
                 await tx.CommitAsync();
             }
+
+            //catch (PdfException pdfEx)
+            //{
+            //    _logger.LogError(pdfEx, "PDF parsing failed: {File}", request.ServerSourceFilePath);
+            //    throw new Exception("Invalid or unreadable PDF format");
+            //}
             catch (Exception ex)
             {
+                _logger.LogError(
+                    ex,
+                    "PDF processing failed for {File} (Year={Year}, Exam={Exam}, Centre={Centre})",
+                    sourceFileName,
+                    request.ExamYear,
+                    request.ExamCode,
+                    request.CenterNumber
+                );
+
                 await tx.RollbackAsync();
-                throw;  // rethrow for controller to handle
+                throw;
             }
+
+            /*catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                Console.WriteLine("===== PDF IMPORT ERROR =====");
+                Console.WriteLine($"File: {request.ServerSourceFilePath}");
+                Console.WriteLine(ex.ToString());
+                Console.WriteLine("============================");
+                throw;  // rethrow for controller to handle
+            }*/
 
             return result;
             

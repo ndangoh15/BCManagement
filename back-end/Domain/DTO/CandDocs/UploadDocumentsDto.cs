@@ -6,5 +6,5 @@ public class UploadDocumentsDto
     public int ExamYear { get; set; }
     public string ExamCode { get; set; }
     public string CenterNumber { get; set; }
-    public int? UploadedBy { get; set; }
+    //public int? UploadedBy { get; set; }
 }
