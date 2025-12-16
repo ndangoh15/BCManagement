@@ -1,11 +1,11 @@
-﻿using Domain.DTO.CandDocs;
+﻿using Application.Services.Concurrency;
+using Domain.DTO.CandDocs;
 using Domain.Entities.CandDocs;
 using Domain.InterfacesServices.CandDocs;
 using Domain.InterfacesStores.CandDocs;
 using Domain.Models.CandDocs;
 using Infrastructure.Context;
 using Infrastructure.Services.CandDocs;
-using iText.Kernel.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.CandDocs.Commands
@@ -37,18 +37,21 @@ namespace Application.Features.CandDocs.Commands
                 SavedFilePaths = new List<string>()
             };
 
-            await using var tx = await _db.Database.BeginTransactionAsync();
+            //await OcrExecutionGate.Semaphore.WaitAsync();
+
+            //await using var tx = await _db.Database.BeginTransactionAsync();
+           
             try
             {
 
-                // 🔥 1. Detect if file already imported before
+                //  1. Detect if file already imported before
                 bool alreadyImported = await _repo.HasBatchBeenImportedAsync(
                     request.ServerSourceFilePath,
                     request.ExamYear,
                     request.ExamCode,
                     request.CenterNumber);
 
-                // 🔥 2. If previously imported → delete old data + files
+                //  2. If previously imported → delete old data + files
                 if (alreadyImported)
                 {
                     await _repo.DeleteDocumentsForBatchAsync(request.ExamYear, request.ExamCode, request.CenterNumber);
@@ -78,7 +81,19 @@ namespace Application.Features.CandDocs.Commands
                     // ----------------------------------------------------------
                     // 3. OCR ONLY PAGE 1 (PERFORMANCE + BETTER ACCURACY)
                     // ----------------------------------------------------------
-                    string ocrText = await _ocr.ExtractTextFromPdfAsync(page1, 1);
+                    //string ocrText = await _ocr.ExtractTextFromPdfAsync(page1, 1);
+                    string ocrText;
+
+                    await OcrExecutionGate.Semaphore.WaitAsync();
+                    try
+                    {
+                        ocrText = await _ocr.ExtractTextFromPdfAsync(page1, 1);
+                    }
+                    finally
+                    {
+                        OcrExecutionGate.Semaphore.Release();
+                    }
+
 
                     // ----------------------------------------------------------
                     // 4. EXTRACT REAL CANDIDATE INFO USING THE PARSER
@@ -125,43 +140,88 @@ namespace Application.Features.CandDocs.Commands
                     // ----------------------------------------------------------
                     // 7. SAVE INTO DATABASE
                     // ----------------------------------------------------------
-                    var document = new CandidateDocument
-                    {
-                        CandidateNumber = info.CandidateNumber,
-                        CandidateName = info.CandidateName,
-                        CentreCode = info.CentreNumber ?? request.CenterNumber,
-                        FormCentreCode = request.CenterNumber,
-                        Session = info.SessionYear ?? request.ExamYear,
-                        FilePath = savedPath,
-                        OcrText = ocrText,
-                        IsValid = isValid,
-                        CreatedAt = DateTime.UtcNow,
-                        UserId = request.UploadedBy ,
-                        ExamCode=request.ExamCode
-                    };
+                    //var document = new CandidateDocument
+                    //{
+                    //    CandidateNumber = info.CandidateNumber,
+                    //    CandidateName = info.CandidateName,
+                    //    CentreCode = info.CentreNumber ?? request.CenterNumber,
+                    //    FormCentreCode = request.CenterNumber,
+                    //    Session = info.SessionYear ?? request.ExamYear,
+                    //    FilePath = savedPath,
+                    //    OcrText = ocrText,
+                    //    IsValid = isValid,
+                    //    CreatedAt = DateTime.UtcNow,
+                    //    UserId = request.UploadedBy ,
+                    //    ExamCode=request.ExamCode
+                    //};
 
-                    await _repo.AddAsync(document);
+                    //await _repo.AddAsync(document);
 
                     // ----------------------------------------------------------
                     // 8. IF INVALID, STORE ERROR DETAILS
                     // ----------------------------------------------------------
-                    if (!isValid)
-                    {
-                        var importError = new ImportError
-                        {
-                            CandidateDocumentId = document.Id,
-                            FilePath = savedPath,
-                            FieldName = "OCR / PARSING",
-                            ErrorType = "ExtractionFailed",
-                            ErrorMessage = BuildErrorMessage(info, request),
-                            Session = request.ExamYear,
-                            UploadedBy = request.UploadedBy.ToString(),
-                            CandidateName=info.CandidateName?? "",
-                            CandidateNumber=info.CandidateNumber ??"",
-                        };
+                    //if (!isValid)
+                    //{
+                    //    var importError = new ImportError
+                    //    {
+                    //        CandidateDocumentId = document.Id,
+                    //        FilePath = savedPath,
+                    //        FieldName = "OCR / PARSING",
+                    //        ErrorType = "ExtractionFailed",
+                    //        ErrorMessage = BuildErrorMessage(info, request),
+                    //        Session = request.ExamYear,
+                    //        UploadedBy = request.UploadedBy.ToString(),
+                    //        CandidateName=info.CandidateName?? "",
+                    //        CandidateNumber=info.CandidateNumber ??"",
+                    //    };
 
-                        await _repo.AddImportErrorsAsync(new[] { importError });
+                    //    await _repo.AddImportErrorsAsync(new[] { importError });
+                    //}
+
+                    await using var tx = await _db.Database.BeginTransactionAsync();
+                    try
+                    {
+                        var document = new CandidateDocument
+                        {
+                            CandidateNumber = info.CandidateNumber,
+                            CandidateName = info.CandidateName,
+                            CentreCode = info.CentreNumber ?? request.CenterNumber,
+                            FormCentreCode = request.CenterNumber,
+                            Session = info.SessionYear ?? request.ExamYear,
+                            FilePath = savedPath,
+                            OcrText = ocrText,
+                            IsValid = isValid,
+                            CreatedAt = DateTime.UtcNow,
+                            UserId = request.UploadedBy,
+                            ExamCode = request.ExamCode
+                        };
+                        await _repo.AddAsync(document);
+                        if (!isValid)
+                        {
+                            var importError = new ImportError
+                            {
+                                CandidateDocumentId = document.Id,
+                                FilePath = savedPath,
+                                FieldName = "OCR / PARSING",
+                                ErrorType = "ExtractionFailed",
+                                ErrorMessage = BuildErrorMessage(info, request),
+                                Session = request.ExamYear,
+                                UploadedBy = request.UploadedBy.ToString(),
+                                CandidateName = info.CandidateName ?? "",
+                                CandidateNumber = info.CandidateNumber ?? "",
+                            };
+
+                            await _repo.AddImportErrorsAsync(new[] { importError });
+                        }
+
+                        await tx.CommitAsync();
                     }
+                    catch
+                    {
+                        await tx.RollbackAsync();
+                        throw;
+                    }
+
                 }
 
                 // ----------------------------------------------------------
@@ -190,14 +250,8 @@ namespace Application.Features.CandDocs.Commands
                 result.TotalCandidates = result.SavedFilePaths.Count;
 
                 // Everything OK → commit!
-                await tx.CommitAsync();
+                //await tx.CommitAsync();
             }
-
-            //catch (PdfException pdfEx)
-            //{
-            //    _logger.LogError(pdfEx, "PDF parsing failed: {File}", request.ServerSourceFilePath);
-            //    throw new Exception("Invalid or unreadable PDF format");
-            //}
             catch (Exception ex)
             {
                 _logger.LogError(
@@ -209,20 +263,14 @@ namespace Application.Features.CandDocs.Commands
                     request.CenterNumber
                 );
 
-                await tx.RollbackAsync();
+                //await tx.RollbackAsync();
                 throw;
             }
 
-            /*catch (Exception ex)
-            {
-                await tx.RollbackAsync();
-                Console.WriteLine("===== PDF IMPORT ERROR =====");
-                Console.WriteLine($"File: {request.ServerSourceFilePath}");
-                Console.WriteLine(ex.ToString());
-                Console.WriteLine("============================");
-                throw;  // rethrow for controller to handle
-            }*/
-
+            //finally
+            //{
+            //    OcrExecutionGate.Semaphore.Release();
+            //}
             return result;
             
         }
@@ -289,20 +337,30 @@ namespace Application.Features.CandDocs.Commands
             return string.Join("; ", errors);
         }
 
-
         public async Task<List<UploadBatchResult>> HandleMultipleAsync(List<UploadBatchRequestDTO> requests)
+        {
+            //var tasks = requests.Select(req =>Task.Run(() => HandleAsync(req)));
+            var tasks = requests.Select(req => HandleAsync(req));
+
+
+            var results = await Task.WhenAll(tasks);
+            return results.ToList();
+        }
+
+
+        /*public async Task<List<UploadBatchResult>> HandleMultipleAsync(List<UploadBatchRequestDTO> requests)
         {
             var results = new List<UploadBatchResult>();
 
             foreach (var req in requests)
             {
-                // 🔥 Reuse your existing handler
+                //  Reuse your existing handler
                 var result = await HandleAsync(req);
                 results.Add(result);
             }
 
             return results;
-        }
+        }*/
 
         public async Task<List<UploadBatchResult>> HandleMultipleFilesAsync(List<string> serverFilePaths, int examYear, string examCode, string centerNumber, int uploadedBy)
         {

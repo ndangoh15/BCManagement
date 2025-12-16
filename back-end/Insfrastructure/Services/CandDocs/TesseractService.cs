@@ -18,18 +18,62 @@ namespace Infrastructure.Services.CandDocs
             _tessdataPath = tessdataPath ?? throw new ArgumentNullException(nameof(tessdataPath));
         }
 
-        //private readonly TesseractEngine _engine;
-
-        //public TesseractService(string tessdataPath, string language = "eng")
-        //{
-        //    if (!Directory.Exists(tessdataPath)) throw new DirectoryNotFoundException(tessdataPath);
-        //    _engine = new TesseractEngine(tessdataPath, language, EngineMode.LstmOnly);
-        //    _engine.SetVariable("load_system_dawg", "0");
-        //    _engine.SetVariable("load_freq_dawg", "0");
-        //    _engine.SetVariable("tessedit_char_whitelist", "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-/. ");
-        //}
-
         public async Task<string> ExtractTextFromPdfAsync(byte[] pdfBytes, int pageNumber = 1)
+        {
+            if (pdfBytes == null || pdfBytes.Length == 0)
+                return string.Empty;
+
+            // TEMP isolé par OCR
+            var tempDir = Path.Combine(
+                Path.GetTempPath(),
+                "ocr",
+                Guid.NewGuid().ToString()
+            );
+
+            Directory.CreateDirectory(tempDir);
+            MagickNET.SetTempDirectory(tempDir);
+
+            try
+            {
+                var settings = new MagickReadSettings
+                {
+                    Density = new Density(200),
+                    FrameIndex = (uint)(pageNumber - 1),
+                    FrameCount = 1
+                    //  PAS de Format ici
+                };
+
+                using var ms = new MemoryStream(pdfBytes);
+                using var images = new MagickImageCollection();
+                images.Read(ms, settings); // lit le PDF via Ghostscript
+
+                if (images.Count == 0)
+                    return string.Empty;
+
+                using var img = (MagickImage)images[0];
+
+                img.ColorType = ColorType.Grayscale;
+                img.Normalize();
+                img.Despeckle();
+
+                using var pngStream = new MemoryStream();
+                await img.WriteAsync(pngStream, MagickFormat.Png); //  PNG ICI
+
+                return ExtractWithTesseract(pngStream.ToArray());
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("OCR error: " + ex.Message, ex);
+            }
+            finally
+            {
+                try { Directory.Delete(tempDir, true); } catch { }
+            }
+        }
+
+
+
+        /*public async Task<string> ExtractTextFromPdfAsync(byte[] pdfBytes, int pageNumber = 1)
         {
             try
             {
@@ -38,9 +82,10 @@ namespace Infrastructure.Services.CandDocs
 
                 var settings = new MagickReadSettings
                 {
-                    Density = new Density(200),     // 200 is enough
+                    Density = new Density(150),     // 200 is enough
                     FrameIndex = (uint)(pageNumber - 1),
-                    FrameCount = 1
+                    FrameCount = 1,
+                    Format = MagickFormat.Png
                 };
 
                 using var ms = new MemoryStream(pdfBytes);
@@ -71,7 +116,7 @@ namespace Infrastructure.Services.CandDocs
             {
                 throw new Exception("OCR error: " + ex.Message, ex);
             }
-        }
+        }*/
 
         private string ExtractWithTesseract(byte[] imageBytes)
         {

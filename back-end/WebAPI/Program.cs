@@ -2,6 +2,7 @@
 using Application.Service;
 using Domain.Entities.Security;
 using Domain.InterfacesServices.Security;
+using ImageMagick;
 using Infrastructure.Exceptions;
 using Insfrastructure;
 using Insfrastructure.Mapper;
@@ -14,7 +15,17 @@ using WebAPI.Extensions;
 const string DefaultConnectionString = "DefaultConnection";
 
 var builder = WebApplication.CreateBuilder(args);
+
 var configuration = builder.Configuration;
+
+var gsPath = builder.Configuration["ImageMagick:GhostscriptPath"];
+
+if (!string.IsNullOrWhiteSpace(gsPath) && Directory.Exists(gsPath))
+{
+    ImageMagick.MagickNET.SetGhostscriptDirectory(gsPath);
+    builder.Logging.AddConsole();
+    Console.WriteLine($"Ghostscript directory set to: {gsPath}");
+}
 
 // ======================================================
 # region LARGE FILE UPLOAD SETTINGS (VERY IMPORTANT)

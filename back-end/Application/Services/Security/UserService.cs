@@ -81,13 +81,15 @@ namespace Application.Service
             var key = Encoding.ASCII.GetBytes(privatekey);
 
 
-            var expiarationDate = DateTime.UtcNow.AddHours(2);
+            //var expiarationDate = DateTime.UtcNow.AddHours(2);
+            var expiarationDate = DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["ExpiresInMinutes"]));
+
             // Create a signing key and sign the token
             var securityKey = new SymmetricSecurityKey(key);
             var creds = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var token = new JwtSecurityToken(
-                issuer: "BC",
-                audience: "BC",
+                issuer: "GCEBC",
+                audience: "GCEBC",
                 claims: claims,
                 expires: expiarationDate, // Set token expiration as needed
                 signingCredentials: creds);
