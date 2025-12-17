@@ -36,6 +36,8 @@ namespace Application
             services.AddScoped<ExtractOcrFromPage1Handler>();
             services.AddScoped<GetImportedBatchesHandler>();
 
+            services.AddScoped<GetImportErrorsHandler>();
+
 
             return services;
         }

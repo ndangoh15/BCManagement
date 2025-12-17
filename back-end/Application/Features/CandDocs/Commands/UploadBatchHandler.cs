@@ -29,6 +29,20 @@ namespace Application.Features.CandDocs.Commands
             _logger = logger;
         }
 
+        private string ExtractBatchNumber(string sourceFilePath)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(sourceFilePath);
+
+            // attendu: 2025_7100_11133_002
+            var parts = fileName.Split('_');
+
+            if (parts.Length >= 4)
+                return parts[^1]; // dernier segment = batch
+
+            return "000";
+        }
+
+
         public async Task<UploadBatchResult> HandleAsync(UploadBatchRequestDTO request)
         {
             string sourceFileName = Path.GetFileName(request.ServerSourceFilePath);
@@ -68,6 +82,8 @@ namespace Application.Features.CandDocs.Commands
                 // 2. SPLIT INTO SINGLE PAGES (PAGE 1 + PAGE 2)
                 // ----------------------------------------------------------
                 var pages = await PdfUtils.SplitPdfByPageAsync(originalBytes);
+
+                string batchNumber = ExtractBatchNumber(request.ServerSourceFilePath);
 
                 int idx = 0;
 
@@ -110,7 +126,7 @@ namespace Application.Features.CandDocs.Commands
                     // ----------------------------------------------------------
                     byte[] mergedPdf = await PdfUtils.MergeTwoPagesAsync(page1, page2);
 
-                    string fileName = $"{request.ExamYear}_{request.ExamCode}_{request.CenterNumber}_{idx:D4}.pdf";
+                    string fileName = $"{request.ExamYear}_{request.ExamCode}_{request.CenterNumber}_{batchNumber}_{idx:D4}.pdf";
 
                     string savedPath;
 
@@ -137,57 +153,20 @@ namespace Application.Features.CandDocs.Commands
 
                     result.SavedFilePaths.Add(savedPath);
 
-                    // ----------------------------------------------------------
-                    // 7. SAVE INTO DATABASE
-                    // ----------------------------------------------------------
-                    //var document = new CandidateDocument
-                    //{
-                    //    CandidateNumber = info.CandidateNumber,
-                    //    CandidateName = info.CandidateName,
-                    //    CentreCode = info.CentreNumber ?? request.CenterNumber,
-                    //    FormCentreCode = request.CenterNumber,
-                    //    Session = info.SessionYear ?? request.ExamYear,
-                    //    FilePath = savedPath,
-                    //    OcrText = ocrText,
-                    //    IsValid = isValid,
-                    //    CreatedAt = DateTime.UtcNow,
-                    //    UserId = request.UploadedBy ,
-                    //    ExamCode=request.ExamCode
-                    //};
-
-                    //await _repo.AddAsync(document);
-
-                    // ----------------------------------------------------------
-                    // 8. IF INVALID, STORE ERROR DETAILS
-                    // ----------------------------------------------------------
-                    //if (!isValid)
-                    //{
-                    //    var importError = new ImportError
-                    //    {
-                    //        CandidateDocumentId = document.Id,
-                    //        FilePath = savedPath,
-                    //        FieldName = "OCR / PARSING",
-                    //        ErrorType = "ExtractionFailed",
-                    //        ErrorMessage = BuildErrorMessage(info, request),
-                    //        Session = request.ExamYear,
-                    //        UploadedBy = request.UploadedBy.ToString(),
-                    //        CandidateName=info.CandidateName?? "",
-                    //        CandidateNumber=info.CandidateNumber ??"",
-                    //    };
-
-                    //    await _repo.AddImportErrorsAsync(new[] { importError });
-                    //}
-
                     await using var tx = await _db.Database.BeginTransactionAsync();
                     try
                     {
+                        // ----------------------------------------------------------
+                        // 7. SAVE INTO DATABASE
+                        // ----------------------------------------------------------
+
                         var document = new CandidateDocument
                         {
                             CandidateNumber = info.CandidateNumber,
                             CandidateName = info.CandidateName,
                             CentreCode = info.CentreNumber ?? request.CenterNumber,
                             FormCentreCode = request.CenterNumber,
-                            Session = info.SessionYear ?? request.ExamYear,
+                            Session = request.ExamYear,
                             FilePath = savedPath,
                             OcrText = ocrText,
                             IsValid = isValid,
@@ -196,6 +175,9 @@ namespace Application.Features.CandDocs.Commands
                             ExamCode = request.ExamCode
                         };
                         await _repo.AddAsync(document);
+                        // ----------------------------------------------------------
+                        // 8. IF INVALID, STORE ERROR DETAILS
+                        // ----------------------------------------------------------
                         if (!isValid)
                         {
                             var importError = new ImportError
@@ -300,14 +282,14 @@ namespace Application.Features.CandDocs.Commands
             }
 
             // Valid session? Between 2000 and 2030
-            if (info.SessionYear.HasValue)
+            /*if (info.SessionYear.HasValue)
             {
                 if (info.SessionYear < 2000 || info.SessionYear > 2030)
                     return false;
 
                 if (info.SessionYear != req.ExamYear)
                     return false;
-            }
+            }*/
 
             return true;
         }
@@ -328,11 +310,11 @@ namespace Application.Features.CandDocs.Commands
                 errors.Add($"Centre mismatch: extracted {info.CentreNumber}, expected {req.CenterNumber}");
             }
 
-            if (info.SessionYear.HasValue &&
+            /*if (info.SessionYear.HasValue &&
                 (info.SessionYear < 2000 || info.SessionYear > 2030))
             {
                 errors.Add($"Invalid session year: {info.SessionYear}");
-            }
+            }*/
 
             return string.Join("; ", errors);
         }

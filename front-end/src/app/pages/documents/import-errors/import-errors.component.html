@@ -1,0 +1,62 @@
+<app-page-header
+  title="Documents"
+  title1="Import Errors"
+  activeitem="Import Errors">
+</app-page-header>
+
+<div class="col-span-12">
+  <div class="box">
+    <div class="box-body p-3">
+      <div class="flex justify-between">
+
+        <!-- SEARCH -->
+        <div class="w-80">
+          <label class="sr-only">Search</label>
+          <div class="flex rounded-md">
+            <button
+              type="button"
+              class="inline-flex justify-center items-center h-[2.875rem] w-[2.875rem]
+                     ltr:rounded-l-md rtl:rounded-r-md
+                     bg-primary text-white">
+              🔍
+            </button>
+            <input
+              type="text"
+              [(ngModel)]="quickFilterText"
+              class="ti-form-input rounded-none ltr:rounded-r-md rtl:rounded-l-md"
+              placeholder="Search errors..."
+            />
+          </div>
+        </div>
+
+        <!-- FILTER INFO -->
+        <div class="text-sm text-gray-500 flex items-center">
+          Session {{ session }} | Exam {{ examCode }} | Centre {{ centreCode }}
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="col-span-12">
+  <div class="box">
+    <div class="box-body p-0">
+      <div style="height: 65vh;">
+        <ag-grid-angular
+          #agGrid
+          style="width: 100%; height: 100%"
+          [rowData]="rowData"
+          [columnDefs]="columnDefs"
+          [defaultColDef]="defaultColDef"
+          [pagination]="true"
+          [paginationPageSize]="paginationPageSize"
+          [paginationPageSizeSelector]="paginationPageSizeSelector"
+          [quickFilterText]="quickFilterText"
+          [class]="themeClass()"
+          (gridReady)="onGridReady($event)">
+        </ag-grid-angular>
+      </div>
+    </div>
+  </div>
+</div>

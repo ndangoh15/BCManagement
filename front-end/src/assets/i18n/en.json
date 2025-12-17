@@ -129,6 +129,7 @@
     "CONTRACT_TYPE": "Contract types",
     "LEAVE_TYPE": "Leaves types",
     "DOCUMENT_IMPORT": "Import Pdf Files",
-    "COMP_CERTIFICATIONS":"Certifications"
+    "COMP_CERTIFICATIONS":"Certifications",
+    "EDIT_IMPORT":"Edit Errors"
   }
 }

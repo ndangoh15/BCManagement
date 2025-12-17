@@ -317,6 +317,7 @@
     "c_Examen":"Examen",
     "ValidateExamSale":"Validate Exam Sale",
     "ValidateMedicamentSale":"Validate Medicament Sale",
-    "DOCUMENT_IMPORT": "Importation fichiers Pdf"
+    "DOCUMENT_IMPORT": "Importation fichiers Pdf",
+    "EDIT_IMPORT":"Editer les Erreurs"
   }
 }

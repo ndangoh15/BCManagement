@@ -122,6 +122,8 @@ namespace Infrastructure.Initialiser
             
                  // DOCUMENT IMPORTATION
                 new { Code = "DOCUMENT_IMPORT", Label = "Document", Controller = "Document", Path = "documents/imported-batches", ModuleCode = "MODULE_ADMINISTRATION" },
+                // EDIT IMPORTATION
+                new { Code = "EDIT_IMPORT", Label = "EditImport", Controller = "ImportErrors", Path = "importerrors/import-errors", ModuleCode = "MODULE_ADMINISTRATION" },
             };
 
             var menuCodesInConfig = menus.Select(m => m.Code).ToHashSet();

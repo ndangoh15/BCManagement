@@ -97,11 +97,16 @@ namespace Infrastructure.Services.CandDocs
 
             for (int i = 0; i < lines.Length; i++)
             {
-                if (!Regex.IsMatch(
-                        lines[i],
-                        @"EXAMINATION\s*CENT(RE|ER)|CENTRE\s+D[' ]?EXAMEN",
-                        RegexOptions.IgnoreCase))
+                //if (!Regex.IsMatch(
+                //        lines[i],
+                //        @"EXAMINATION\s*CENT(RE|ER)|CENTRE\s+D[' ]?EXAMEN",
+                //        RegexOptions.IgnoreCase))
+                //    continue;
+                if (!lines[i].ToUpperInvariant().Contains("EXAMINATION") || !lines[i].ToUpperInvariant().Contains("CENT"))
+                {
                     continue;
+                }
+
 
                 // 1️⃣ même ligne
                 var sameLine = Regex.Match(lines[i], @"\b(\d{5})\b");

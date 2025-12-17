@@ -49,38 +49,3 @@ export class DocumentManagerService {
     return this.documentService.documentControllerCheckIfAlreadyImported(fileNames);
   }
 }
-
-/*
-@Injectable({
-  providedIn: 'root'
-})
-export class DocumentManagerService {
-
-  // Liste des fichiers importés (pour rafraîchir UI)
-  documentListSubject = new Subject<void>();
-  authService: any;
-
-  constructor(private documentService: DocumentService) {}
-
-  emitRefreshList(): void {
-    this.documentListSubject.next();
-  }
-
-  // Upload SEQUENTIEL avec reportProgress
-  async uploadSingleFile(file: File, decoded: any) {
-   
-    return this.documentService.documentControllerUploadMultiple(
-      [file],
-      decoded.year,
-      decoded.examCode,
-      decoded.center,
-      'events',          // clé pour activer event upload
-      true               // reportProgress = true
-    );
-  }
-
-  checkAlreadyImported(fileNames: string[]): Observable<string[]> {
-    return this.documentService.documentControllerCheckIfAlreadyImported(fileNames);
-  }
-}
-*/

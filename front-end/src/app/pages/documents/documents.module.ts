@@ -8,11 +8,13 @@ import { AgGridModule } from 'ag-grid-angular';
 import { ImportedBatchesComponent } from './imported-batches/imported-batches.component';
 import { ImportMultipleComponent } from './imported-batches/import-multiple/import-multiple.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ImportErrorsComponent } from './import-errors/import-errors.component';
 
 @NgModule({
   declarations: [
     ImportedBatchesComponent,
-    ImportMultipleComponent
+    ImportMultipleComponent,
+    ImportErrorsComponent
   ],
   imports: [
     CommonModule,
