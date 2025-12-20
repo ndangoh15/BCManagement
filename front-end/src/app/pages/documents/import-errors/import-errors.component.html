@@ -5,46 +5,86 @@
 </app-page-header>
 
 <div class="col-span-12">
-  <div class="box">
-    <div class="box-body p-3">
-      <div class="flex justify-between">
 
-        <!-- SEARCH -->
+  <div class="box">
+    <div class="box-body p-4">
+
+      <!-- 🔎 FILTERS -->
+      <div class="flex gap-4 items-end mb-4">
+
+        <div>
+          <label class="ti-form-label">Session</label>
+          <input
+            type="number"
+            class="ti-form-input"
+            [(ngModel)]="filters.session"
+            (change)="onFiltersChanged()"
+            placeholder="2025" />
+        </div>
+
+        <div>
+          <label class="ti-form-label">Exam Code</label>
+          <input
+            type="text"
+            class="ti-form-input"
+            [(ngModel)]="filters.examCode"
+            (change)="onFiltersChanged()"
+            placeholder="7100" />
+        </div>
+
+        <div>
+          <label class="ti-form-label">Centre Code</label>
+          <select
+            class="ti-form-input"
+            [(ngModel)]="filters.centreCode">
+            <option value="">All Centres</option>
+            <option *ngFor="let c of centreOptions" [value]="c">
+              {{ c }}
+            </option>
+          </select>
+
+        </div>
+
+        <div>
+          <button
+            class="ti-btn ti-btn-primary"
+            type="button"
+            (click)="onSearch()">
+            Search
+          </button>
+        </div>
+
+      </div>
+
+      <!-- 🔍 QUICK FILTER -->
+      <div class="flex justify-between mb-2">
         <div class="w-80">
-          <label class="sr-only">Search</label>
           <div class="flex rounded-md">
             <button
               type="button"
-              class="inline-flex justify-center items-center h-[2.875rem] w-[2.875rem]
-                     ltr:rounded-l-md rtl:rounded-r-md
-                     bg-primary text-white">
+              class="inline-flex justify-center items-center h-[2.875rem] w-[2.875rem] ltr:rounded-l-md border bg-primary text-white">
               🔍
             </button>
             <input
               type="text"
               [(ngModel)]="quickFilterText"
-              class="ti-form-input rounded-none ltr:rounded-r-md rtl:rounded-l-md"
-              placeholder="Search errors..."
-            />
+              class="ti-form-input rounded-none ltr:rounded-r-md"
+              placeholder="Search in table..." />
           </div>
         </div>
-
-        <!-- FILTER INFO -->
-        <div class="text-sm text-gray-500 flex items-center">
-          Session {{ session }} | Exam {{ examCode }} | Centre {{ centreCode }}
-        </div>
-
       </div>
+
     </div>
   </div>
+
 </div>
 
+<!-- 📊 TABLE -->
 <div class="col-span-12">
   <div class="box">
     <div class="box-body p-0">
       <div style="height: 65vh;">
         <ag-grid-angular
-          #agGrid
           style="width: 100%; height: 100%"
           [rowData]="rowData"
           [columnDefs]="columnDefs"

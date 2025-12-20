@@ -37,6 +37,7 @@ namespace Application
             services.AddScoped<GetImportedBatchesHandler>();
 
             services.AddScoped<GetImportErrorsHandler>();
+            services.AddScoped<GetInvalidCentreCodesQuery>();
 
 
             return services;

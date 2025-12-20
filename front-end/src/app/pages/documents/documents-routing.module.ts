@@ -9,7 +9,7 @@ const routes: Routes = [
     children: 
     [
       {path: 'documents/imported-batches', component: ImportedBatchesComponent},
-      { path: 'import-errors',  component: ImportErrorsComponent}
+      {path: 'documents/import-errors',  component: ImportErrorsComponent}
     ] 
   }
 ];
