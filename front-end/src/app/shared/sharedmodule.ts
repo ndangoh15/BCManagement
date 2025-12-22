@@ -18,6 +18,7 @@ import { ToggleThemeDirective } from './directives/toggle-theme.directive';
 import { ActionCellRendererComponent } from '../pages/component/action-cell-renderer/action-cell-renderer.component';
 import { ActionCellRendererAddComponent } from '../pages/component/action-cell-renderer-add/action-cell-renderer-add.component';
 import { DetailCellRendererJourney } from '../pages/component/detail-cell-renderer-journey/detail-cell-renderer-journey';
+import { SafeUrlPipe } from './pipes/safe-url.pipe';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import { DetailCellRendererJourney } from '../pages/component/detail-cell-render
     SidemenuToggleDirective,
     ActionCellRendererComponent,
     ActionCellRendererAddComponent,
-    DetailCellRendererJourney
+    DetailCellRendererJourney,
+    SafeUrlPipe   
   ],
   imports: [
     CommonModule,
@@ -52,6 +54,7 @@ import { DetailCellRendererJourney } from '../pages/component/detail-cell-render
     FullscreenDirective,
     FooterComponent,
     SidemenuToggleDirective,
+    SafeUrlPipe   
   ]
 })
 export class SharedModule {}

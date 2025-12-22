@@ -1,4 +1,5 @@
 ﻿using Application;
+using Application.Features.CandDocs.Queries;
 using Application.Service;
 using Domain.Entities.Security;
 using Domain.InterfacesServices.Security;
@@ -127,8 +128,7 @@ builder.Services.AddDatabaseContext(connectionString);
 builder.Services.AddInfrastructureStores();
 builder.Services.AddApplicationServices();
 
-
-
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetImportErrorDetailQuery).Assembly));
 
 
 var app = builder.Build();

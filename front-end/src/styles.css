@@ -36,3 +36,23 @@
   }
 
 }
+
+/* ===== MODAL OVERLAY (GLOBAL) ===== */
+
+.modal-overlay {
+  position: fixed !important;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-wrapper {
+  width: 90%;
+  height: 90%;
+}
+
+

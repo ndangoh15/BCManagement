@@ -35,4 +35,19 @@ export class ImportErrorsManager {
     examCode
   );
 }
+getErrorDetail(id: number) {
+  return this.api.importErrorsControllerGetErrorDetail(id);
+}
+
+fixImportError(payload: {
+  documentId: number;
+  session: number;
+  examCode: string;
+  centreCode: string;
+  candidateNumber: string;
+  candidateName: string;
+}) {
+  return this.api.importErrorsControllerFixImportError(payload);
+}
+
 }

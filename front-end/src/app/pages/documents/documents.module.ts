@@ -9,12 +9,14 @@ import { ImportedBatchesComponent } from './imported-batches/imported-batches.co
 import { ImportMultipleComponent } from './imported-batches/import-multiple/import-multiple.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ImportErrorsComponent } from './import-errors/import-errors.component';
+import { FixImportErrorComponent } from './import-errors/fix-import-error/fix-import-error.component';
 
 @NgModule({
   declarations: [
     ImportedBatchesComponent,
     ImportMultipleComponent,
-    ImportErrorsComponent
+    ImportErrorsComponent,
+    FixImportErrorComponent
   ],
   imports: [
     CommonModule,
@@ -22,7 +24,8 @@ import { ImportErrorsComponent } from './import-errors/import-errors.component';
     AgGridModule,
     FormsModule,
     ReactiveFormsModule,
-    DocumentsRoutingModule
+    DocumentsRoutingModule,
+    SharedModule   
   ]
 })
 export class DocumentsModule { }

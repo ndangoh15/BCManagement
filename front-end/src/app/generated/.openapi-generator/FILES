@@ -31,6 +31,7 @@ model/companyModel.ts
 model/countryModel.ts
 model/createOrUpdateProfileRequest.ts
 model/departmentModel.ts
+model/fixImportErrorCommand.ts
 model/jobModel.ts
 model/loginRequestDtoIn.ts
 model/loginResponse.ts

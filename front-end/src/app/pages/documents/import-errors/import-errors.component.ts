@@ -36,16 +36,27 @@ export class ImportErrorsComponent {
     { headerName: 'Error Type', field: 'errorType' },
     { headerName: 'Message', field: 'errorMessage', flex: 2 },
     {
-      headerName: 'Action',
-      cellRenderer: () =>
-        `<button class="ti-btn ti-btn-primary ti-btn-sm">Edit</button>`,
-      width: 120
+      headerName: 'Actions',
+      width: 120,
+      field: 'action',
+      cellRenderer: () => 'Edit'
     }
   ];
 
+  fixModalOpen = false;
+selectedErrorId!: number;
+
+onCellClicked(event: any): void {
+  if (event.colDef.headerName === 'Actions') {
+    console.log('OPEN FIX MODAL', event.data.errorId);
+    this.selectedErrorId = event.data.errorId;
+    this.fixModalOpen = true;
+  }
+}
+
+
   constructor(
-    private errorsManager: ImportErrorsManager
-  ) {}
+    private errorsManager: ImportErrorsManager  ) {}
 
   onGridReady(event: GridReadyEvent): void {}
 
@@ -96,6 +107,10 @@ onFiltersChanged(): void {
     });
 }
 
+refreshData() {
+  this.fixModalOpen = false;
+  this.onSearch(); // recharge la liste avec les filtres actuels
+}
 
 
   themeClass(): string {

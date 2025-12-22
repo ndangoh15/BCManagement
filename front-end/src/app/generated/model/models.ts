@@ -12,6 +12,7 @@ export * from './companyModel';
 export * from './countryModel';
 export * from './createOrUpdateProfileRequest';
 export * from './departmentModel';
+export * from './fixImportErrorCommand';
 export * from './jobModel';
 export * from './loginRequestDtoIn';
 export * from './loginResponse';

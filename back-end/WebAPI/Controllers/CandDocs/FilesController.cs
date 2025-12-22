@@ -18,6 +18,7 @@ namespace WebApi.Controllers
             _logger = logger;
         }
 
+        [AllowAnonymous]
         [HttpGet("preview/{documentId}")]
         public async Task<IActionResult> PreviewPdf(int documentId)
         {
@@ -41,8 +42,8 @@ namespace WebApi.Controllers
                 FileAccess.Read,
                 FileShare.Read
             );
+            return File(stream, "application/pdf", enableRangeProcessing: true);
 
-            return File(stream, "application/pdf");
         }
     }
 }

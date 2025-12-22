@@ -1,3 +1,4 @@
+
 <app-page-header
   title="Documents"
   title1="Import Errors"
@@ -91,12 +92,26 @@
           [defaultColDef]="defaultColDef"
           [pagination]="true"
           [paginationPageSize]="paginationPageSize"
-          [paginationPageSizeSelector]="paginationPageSizeSelector"
           [quickFilterText]="quickFilterText"
           [class]="themeClass()"
-          (gridReady)="onGridReady($event)">
+          (cellClicked)="onCellClicked($event)">
         </ag-grid-angular>
+
       </div>
     </div>
   </div>
 </div>
+
+<div *ngIf="fixModalOpen" class="modal-overlay">
+  <div class="modal-wrapper">
+    <app-fix-import-error
+      [errorId]="selectedErrorId"
+      (closed)="fixModalOpen = false">
+    </app-fix-import-error>
+  </div>
+</div>
+
+
+
+
+
