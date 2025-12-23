@@ -24,6 +24,7 @@ import { ConfigError } from './config.error';
 import { environment } from 'src/environments/environment';
 import { RefraicheComponent } from './pages/component/refraiche-page/refraiche.component';
 import { AuthExpiredInterceptor } from './helper/interceptors/auth-expired-interceptor';
+//import { MaterialModule } from '././materialModule/material-module/material-module.module';
 
 
 
@@ -49,6 +50,7 @@ import { AuthExpiredInterceptor } from './helper/interceptors/auth-expired-inter
     LeafletModule,
     ColorPickerModule,
     TranslocoRootModule,
+    //MaterialModule,
     ApiModule.forRoot(() => new Configuration({ basePath: environment.apiUrl })),
   ],
 

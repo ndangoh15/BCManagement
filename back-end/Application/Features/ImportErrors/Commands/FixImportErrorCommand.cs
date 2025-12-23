@@ -12,6 +12,11 @@ namespace Application.Features.ImportErrors.Commands
 
         public string CandidateNumber { get; set; }
         public string CandidateName { get; set; }
+
+        //  CONTEXTE ATTENDU (formulaire parent)
+        public int ExpectedSession { get; set; }
+        public string ExpectedExamCode { get; set; }
+        public string ExpectedCentreCode { get; set; }
     }
 }
 

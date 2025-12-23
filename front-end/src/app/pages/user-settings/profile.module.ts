@@ -7,7 +7,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DpDatePickerModule } from "ng2-date-picker";
 import { NgSelectModule } from '@ng-select/ng-select';
 import { SharedModule } from 'src/app/shared/sharedmodule';
-import { MaterialModuleModule } from 'src/app/materialModule/material-module/material-module.module';
+import { MaterialModule } from 'src/app/materialModule/material-module/material-module.module';
 import { LightboxModule } from 'ng-gallery/lightbox';
 import { GalleryModule } from '@ks89/angular-modal-gallery';
 @NgModule({
@@ -20,7 +20,7 @@ import { GalleryModule } from '@ks89/angular-modal-gallery';
     DpDatePickerModule,
     NgSelectModule,
     SharedModule,
-    MaterialModuleModule,
+    MaterialModule,
     GalleryModule,
     LightboxModule,
 

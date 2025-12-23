@@ -1,5 +1,6 @@
 ﻿using Application.Features.CandDocs.Queries;
 using Application.Features.ImportErrors.Commands;
+using Infrastructure.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -50,8 +51,15 @@ public class ImportErrorsController : ControllerBase
     [HttpPost("fix")]
     public async Task<IActionResult> FixImportError([FromBody] FixImportErrorCommand command)
     {
-        var result = await _mediator.Send(command);
-        return Ok(new { success = result });
+        try
+        {
+            var result = await _mediator.Send(command);
+            return Ok(new { success = result });
+        }
+        catch (BusinessException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
 }

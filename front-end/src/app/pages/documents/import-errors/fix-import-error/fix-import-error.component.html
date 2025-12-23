@@ -1,22 +1,100 @@
-<div class="modal-header">
-  <h3>Correct Import Error</h3>
-  <button (click)="closed.emit()">✕</button>
-</div>
+<h2 mat-dialog-title>Correct Import Error</h2>
 
-<div class="modal-body grid grid-cols-12 gap-4">
-  <div class="col-span-4 overflow-auto pr-3">
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <button class="ti-btn ti-btn-primary w-full mt-4">
-        Fix Error
-      </button>
-    </form>
-  </div>
+<mat-dialog-content class="h-full">
+  <div class="grid grid-cols-12 gap-4 h-full">
 
-  <div class="col-span-8">
-    <iframe
-      *ngIf="safePdfUrl"
-      [src]="safePdfUrl"
-      style="width:100%;height:100%;border:none">
-    </iframe>
+    <!-- FORM -->
+    <div class="col-span-4 space-y-3">
+      <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-3">
+
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">
+            Session
+          </label>
+          <input
+            matInput
+            class="ti-form-input w-full"
+            formControlName="session"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">
+            Exam Code
+          </label>
+          <input
+            matInput
+            class="ti-form-input w-full"
+            formControlName="examCode"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">
+            Centre Code
+          </label>
+          <input
+            matInput
+            class="ti-form-input w-full"
+            formControlName="centreCode"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">
+            Candidate Number (CIN)
+          </label>
+          <input
+            matInput
+            class="ti-form-input w-full"
+            formControlName="candidateNumber"
+            cdkFocusInitial
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">
+            Candidate Name
+          </label>
+          <input
+            matInput
+            class="ti-form-input w-full"
+            formControlName="candidateName"
+          />
+        </div>
+
+        <div *ngIf="errorMessage"
+          class="mb-3 p-2 rounded bg-red-100 text-red-700 text-sm">
+          {{ errorMessage }}
+        </div>
+
+        <button
+          mat-flat-button
+          color="primary"
+          class="w-full mt-3"
+          type="submit"
+          [disabled]="saving">
+          {{ saving ? 'Saving…' : 'Fix Error' }}
+        </button>
+
+      </form>
+
+
+
+    </div>
+
+    <!-- PDF -->
+    <div class="col-span-8 h-full">
+      <iframe
+        *ngIf="safePdfUrl"
+        [src]="safePdfUrl"
+        style="width:100%;height:100%;border:none">
+      </iframe>
+    </div>
+
   </div>
-</div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Close</button>
+</mat-dialog-actions>

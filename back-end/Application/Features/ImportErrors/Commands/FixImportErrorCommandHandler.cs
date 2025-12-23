@@ -1,5 +1,6 @@
 ﻿using Domain.Entities.CandDocs;
 using Infrastructure.Context;
+using Infrastructure.Exceptions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -30,15 +31,77 @@ namespace Application.Features.ImportErrors.Commands
                     .FirstOrDefaultAsync(d => d.Id == request.DocumentId, cancellationToken);
 
                 if (document == null)
-                    throw new Exception("Candidate document not found");
+                    throw new BusinessException("Candidate document not found");
+
+
+                // ======================================================
+                //  VALIDATION DU CONTEXTE (PARENT vs REQUEST)
+                // ======================================================
+
+                if (request.Session != request.ExpectedSession)
+                {
+                    throw new BusinessException(
+                        "Session mismatch. You are not allowed to change the session."
+                    );
+                }
+
+                if (request.ExamCode != request.ExpectedExamCode)
+                {
+                    throw new BusinessException(
+                        "Exam code mismatch. You are not allowed to change the exam code."
+                    );
+                }
+
+                if (request.CentreCode != request.ExpectedCentreCode)
+                {
+                    throw new BusinessException(
+                        "Centre mismatch. You are not allowed to change the centre."
+                    );
+                }
+
+                // CIN LENGTH
+                if (string.IsNullOrWhiteSpace(request.CandidateNumber) ||
+                    request.CandidateNumber.Length != 9)
+                    throw new BusinessException("Candidate number must be exactly 9 characters.");
+
+                // CIN → CENTRE
+                var centreFromCin = request.CandidateNumber.Substring(0, 5);
+                if (centreFromCin != request.CentreCode)
+                    throw new BusinessException("CIN does not match centre code.");
+
+                // CIN → 6th DIGIT
+                char expectedDigit;
+                if (request.ExamCode.StartsWith("5"))
+                    expectedDigit = '5';
+                else if (request.ExamCode.StartsWith("7"))
+                    expectedDigit = '7';
+                else
+                    throw new BusinessException("Unsupported exam code.");
+
+                if (request.CandidateNumber[5] != expectedDigit)
+                    throw new BusinessException(
+                        $"Invalid CIN. 6th digit must be '{expectedDigit}'.");
+
+                // NAME NORMALIZATION
+                var normalizedName = request.CandidateName?
+                    .Trim()
+                    .ToUpperInvariant();
+
+                if (string.IsNullOrWhiteSpace(normalizedName))
+                    throw new BusinessException("Candidate name is required.");
+
+                // ======================================================
+                //  ⬆⬆⬆ FIN DES VALIDATIONS ⬆⬆⬆
+                // ======================================================
 
                 // 1️⃣ Mise à jour des données corrigées
                 document.Session = request.Session;
                 document.ExamCode = request.ExamCode;
                 document.CentreCode = request.CentreCode;
                 document.CandidateNumber = request.CandidateNumber;
-                document.CandidateName = request.CandidateName;
+                document.CandidateName = normalizedName;
                 document.IsValid = true;
+
 
                 // 2️⃣ Suppression des erreurs
                 if (document.ImportErrors?.Any() == true)

@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { ColDef, GridReadyEvent } from 'ag-grid-community';
 import { ImportErrorsManager } from 'src/app/services/documents/import-errors.manager';
+import { MatDialog } from '@angular/material/dialog';
+import { FixImportErrorComponent } from './fix-import-error/fix-import-error.component';
 
 
 @Component({
@@ -39,24 +41,38 @@ export class ImportErrorsComponent {
       headerName: 'Actions',
       width: 120,
       field: 'action',
-      cellRenderer: () => 'Edit'
+      cellRenderer: () => `<button class="ti-btn ti-btn-primary ti-btn-sm">Edit</button>`
     }
   ];
 
-  fixModalOpen = false;
-selectedErrorId!: number;
-
 onCellClicked(event: any): void {
-  if (event.colDef.headerName === 'Actions') {
-    console.log('OPEN FIX MODAL', event.data.errorId);
-    this.selectedErrorId = event.data.errorId;
-    this.fixModalOpen = true;
-  }
+  if (event.colDef.headerName !== 'Actions') return;
+
+  const dialogRef = this.dialog.open(FixImportErrorComponent, {
+    width: '95vw',
+    height: '90vh',
+    maxWidth: '100vw',
+    disableClose: true,
+    data: {
+      errorId: event.data.errorId,
+      context: {
+        session: this.filters.session,
+        examCode: this.filters.examCode,
+        centreCode: this.filters.centreCode
+      }
+    }
+  });
+
+  dialogRef.afterClosed().subscribe(result => {
+    if (result === 'fixed') {
+      this.onSearch(); // refresh liste
+    }
+  });
 }
 
-
   constructor(
-    private errorsManager: ImportErrorsManager  ) {}
+    private errorsManager: ImportErrorsManager,
+    private dialog: MatDialog) {}
 
   onGridReady(event: GridReadyEvent): void {}
 
@@ -108,9 +124,10 @@ onFiltersChanged(): void {
 }
 
 refreshData() {
-  this.fixModalOpen = false;
+  //this.fixModalOpen = false;
   this.onSearch(); // recharge la liste avec les filtres actuels
 }
+
 
 
   themeClass(): string {

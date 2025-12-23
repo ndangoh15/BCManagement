@@ -10,6 +10,7 @@ import { ImportMultipleComponent } from './imported-batches/import-multiple/impo
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ImportErrorsComponent } from './import-errors/import-errors.component';
 import { FixImportErrorComponent } from './import-errors/fix-import-error/fix-import-error.component';
+import { MaterialModule } from 'src/app/materialModule/material-module/material-module.module';
 
 @NgModule({
   declarations: [
@@ -25,7 +26,8 @@ import { FixImportErrorComponent } from './import-errors/fix-import-error/fix-im
     FormsModule,
     ReactiveFormsModule,
     DocumentsRoutingModule,
-    SharedModule   
+    SharedModule  ,
+    MaterialModule    
   ]
 })
 export class DocumentsModule { }

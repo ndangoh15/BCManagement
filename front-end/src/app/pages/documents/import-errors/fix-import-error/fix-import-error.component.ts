@@ -1,21 +1,30 @@
-import {Component,  Input,  Output,  EventEmitter,  OnChanges,  SimpleChanges} from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {Component,   Inject,   OnChanges,   OnInit, SimpleChanges} from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { DomSanitizer,SafeResourceUrl } from '@angular/platform-browser';
 import { CandidateDocumentEditDto } from 'src/app/models/candidate-document-edit.model';
 import { ImportErrorsManager } from 'src/app/services/documents/import-errors.manager';
 import { environment } from 'src/environments/environment';
+
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+
+interface FixImportDialogData {
+  errorId: number;
+  context: {
+    session: number;
+    examCode: string;
+    centreCode: string;
+  };
+}
+
+
+
 
 @Component({
   selector: 'app-fix-import-error',
   templateUrl: './fix-import-error.component.html',
   styleUrls: ['./fix-import-error.component.scss']
 })
-export class FixImportErrorComponent implements OnChanges {
-
-  @Input() errorId!: number;
-
-  @Output() closed = new EventEmitter<void>();
-  @Output() fixed = new EventEmitter<void>();
+export class FixImportErrorComponent implements OnInit {
 
   loading = true;
   saving = false;
@@ -28,83 +37,125 @@ export class FixImportErrorComponent implements OnChanges {
   pdfUrl!: string;
   safePdfUrl: SafeResourceUrl | null = null;
 
+  context!: {
+    session: number;
+    examCode: string;
+    centreCode: string;
+  };
+
+  errorMessage: string | null = null;
+
   constructor(
-    private fb: FormBuilder,
-    private manager: ImportErrorsManager,
-    private sanitizer: DomSanitizer
-  ) {}
-
-   ngOnInit() {
-    console.log(' FixImportErrorComponent INIT, errorId =', this.errorId);
-
-    //  FormGroup DOIT exister immédiatement
-    this.form = this.fb.group({
-      session: [''],
-      examCode: [''],
-      centreCode: [''],
-      candidateNumber: [''],
-      candidateName: ['']
-    });
+  @Inject(MAT_DIALOG_DATA) public data: FixImportDialogData,
+  private dialogRef: MatDialogRef<FixImportErrorComponent>,
+  private fb: FormBuilder,
+  private manager: ImportErrorsManager,
+  private sanitizer: DomSanitizer
+) {
+    this.context = data.context;
   }
 
-    ngOnChanges() {
-  if (this.errorId) {
-    this.loadDetail();
-  }
+
+   ngOnInit(): void {
+  this.form = this.fb.group({
+    session: [''],
+    examCode: [''],
+    centreCode: [''],
+    candidateNumber: [''],
+    candidateName: ['']
+  });
+
+  this.loadDetail();
+  console.log('Context from parent:', this.context);
 }
 
-loadDetail() {
+loadDetail(): void {
   this.loading = true;
 
-  this.manager
-    .getErrorDetail(this.errorId)
-    .subscribe({
-      next: (res) => {
-        this.form.patchValue({
-          session: res.session,
-          examCode: res.examCode,
-          centreCode: res.centreCode,
-          candidateNumber: res.candidateNumber,
-          candidateName: res.candidateName
-        });
+  this.manager.getErrorDetail(this.data.errorId).subscribe({
+    next: res => {
+      this.document = res;
 
-        this.pdfUrl = this.apiBaseUrl + res.pdfUrl;
-        this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.pdfUrl);
-        this.loading = false;
-      }
-    });
+      const session =
+        res.session ?? this.context.session;
+
+      const examCode =
+        res.examCode && res.examCode.trim() !== ''
+          ? res.examCode
+          : this.context.examCode;
+
+      const centreCode =
+        res.centreCode && res.centreCode.trim() !== ''
+          ? res.centreCode
+          : this.context.centreCode;
+
+      const candidateNumber =
+        res.candidateNumber && res.candidateNumber.trim() !== ''
+          ? res.candidateNumber
+          : this.context.centreCode; //  règle spéciale CIN
+
+      const candidateName =
+        res.candidateName && res.candidateName.trim() !== ''
+          ? res.candidateName
+          : '';
+
+      this.form.patchValue({
+        session,
+        examCode,
+        centreCode,
+        candidateNumber,
+        candidateName
+      });
+
+      this.pdfUrl = environment.apiUrl + res.pdfUrl;
+      this.safePdfUrl =
+        this.sanitizer.bypassSecurityTrustResourceUrl(this.pdfUrl);
+
+      this.loading = false;
+    },
+    error: () => (this.loading = false)
+  });
 }
 
 
-  submit(): void {
-    if (this.form.invalid || this.saving) return;
+submit(): void {
+  if (this.form.invalid || this.saving) return;
 
-    this.saving = true;
+  this.saving = true;
+  this.errorMessage = null;
 
-    const payload = {
-      documentId: this.document.id, //  IMPORTANT
-      session: this.form.value.session,
-      examCode: this.form.value.examCode,
-      centreCode: this.form.value.centreCode,
-      candidateNumber: this.form.value.candidateNumber,
-      candidateName: this.form.value.candidateName
-    };
+  const payload = {
+    documentId: this.document.id,
+    session: this.form.value.session,
+    examCode: this.form.value.examCode,
+    centreCode: this.form.value.centreCode,
+    candidateNumber: this.form.value.candidateNumber,
+    candidateName: this.form.value.candidateName,
 
-    this.manager.fixImportError(payload).subscribe({
-      next: () => {
-        this.saving = false;
-        this.fixed.emit();
-        this.close();
-      },
-      error: () => {
-        this.saving = false;
-      }
-    });
-  }
+    expectedSession: this.context.session,
+    expectedExamCode: this.context.examCode,
+    expectedCentreCode: this.context.centreCode
+  };
 
-  close(): void {
-    this.closed.emit();
-  }
+  this.manager.fixImportError(payload).subscribe({
+    next: () => {
+      this.saving = false;
+      this.dialogRef.close('fixed'); //  clé
+    },
+    error: (err) => {
+      this.saving = false;
+
+      //  MESSAGE BACKEND → UI
+      this.errorMessage =
+        err?.error?.message ?? 'Unable to fix the import error.';
+    }
+  });
+}
+
+
+ close(): void {
+  this.dialogRef.close();
+}
 
   
 

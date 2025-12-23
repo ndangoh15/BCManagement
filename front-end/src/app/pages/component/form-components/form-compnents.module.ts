@@ -15,7 +15,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgxDropzoneModule } from 'ngx-dropzone';
 import { FormInputComponent } from './form-input/form-input.component';
 import { FormSelectComponent } from './form-select/form-select.component';
-import { MaterialModuleModule } from 'src/app/materialModule/material-module/material-module.module';
+import { MaterialModule } from 'src/app/materialModule/material-module/material-module.module';
 import { DpDatePickerModule } from 'ng2-date-picker';
 import { ModalComponent } from '../modal/modal.component';
 import { SearchBarComponent } from './search-bar/search-bar.component';
@@ -40,7 +40,7 @@ import { SearchBarComponent } from './search-bar/search-bar.component';
     AgGridModule,
     ReactiveFormsModule,
     DpDatePickerModule,
-    MaterialModuleModule,
+    MaterialModule,
     NgxDropzoneModule,
 
   ],
