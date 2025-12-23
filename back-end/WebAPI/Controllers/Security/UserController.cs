@@ -1,12 +1,13 @@
 ﻿// using Application.Domain;
 using Domain.DTO;
-using Domain.Models;
-using Domain.InterfacesStores.Security;
 using Domain.Entities.Configurations;
-using Microsoft.AspNetCore.Mvc;
 using Domain.InterfacesServices.Security;
+using Domain.InterfacesStores.Security;
+using Domain.Models;
 using Domain.Models.Security;
+using Infrastructure.Exceptions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace WebAPI.Controllers
@@ -26,9 +27,22 @@ namespace WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<UserModel?> CreateUser(UserCreateDTO userModel)
+        public async Task<IActionResult> CreateUser([FromBody] UserCreateDTO userModel)
         {
-            return await _userService.CreateUser(userModel);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                //return await _userService.CreateUser(userModel);
+                var result = await _userService.CreateUser(userModel);
+                return Ok(result);
+            }
+            catch (BusinessException ex)
+            { 
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
 

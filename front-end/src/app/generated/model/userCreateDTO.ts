@@ -12,9 +12,11 @@ import { AdressCreateDTO } from './adressCreateDTO';
 
 
 export interface UserCreateDTO { 
-    globalPersonID?: number;
+    globalPersonID?: number | null;
     code?: string | null;
     userLogin?: string | null;
+    password?: string | null;
+    confirmPassword?: string | null;
     userAccessLevel?: number;
     userAccountState?: boolean;
     jobID?: number;
@@ -27,7 +29,5 @@ export interface UserCreateDTO {
     branchID?: number;
     sexID?: number;
     isConnected?: boolean;
-    isMarketer?: boolean;
-    isSeller?: boolean;
 }
 

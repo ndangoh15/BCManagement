@@ -1,3 +1,7 @@
+<div *ngIf="error" class="mb-4 p-3 rounded bg-red-100 text-red-700 text-sm">
+  {{ error }}
+</div>
+
 <form [formGroup]="userForm" (ngSubmit)="createOrUpdateUSer()">
 
 
@@ -145,41 +149,6 @@
                   </label>
                 </div>
               </div>
-
-
-
-
-              <!-- Is Master -->
-              <div class="p-2">
-                <label for="isMarketer" class="block text-sm mb-2 dark:text-white">Is Marketer</label>
-                <div class="grid sm:grid-cols-2 gap-2">
-                  <label class="flex p-3 w-full bg-white border border-gray-200 rounded-md text-sm focus:border-primary focus:ring-primary dark:bg-bgdark dark:border-white/10 dark:text-white/70">
-                    <input type="radio" formControlName="isMarketer" [value]="true" class="ti-form-radio">
-                    <span class="text-sm text-gray-500 ltr:ml-2 rtl:mr-2 dark:text-white/70">Yes</span>
-                  </label>
-                  <label class="flex p-3 w-full bg-white border border-gray-200 rounded-md text-sm focus:border-primary focus:ring-primary dark:bg-bgdark dark:border-white/10 dark:text-white/70">
-                    <input type="radio" formControlName="isMarketer" [value]="false" class="ti-form-radio">
-                    <span class="text-sm text-gray-500 ltr:ml-2 rtl:mr-2 dark:text-white/70">No</span>
-                  </label>
-                </div>
-              </div>
-
-               <!-- Is Seller -->
-              <div class="p-2">
-                <label for="isSeller" class="block text-sm mb-2 dark:text-white">Is Seller</label>
-                <div class="grid sm:grid-cols-2 gap-2">
-                  <label class="flex p-3 w-full bg-white border border-gray-200 rounded-md text-sm focus:border-primary focus:ring-primary dark:bg-bgdark dark:border-white/10 dark:text-white/70">
-                    <input type="radio" formControlName="isSeller" [value]="true" class="ti-form-radio">
-                    <span class="text-sm text-gray-500 ltr:ml-2 rtl:mr-2 dark:text-white/70">Yes</span>
-                  </label>
-                  <label class="flex p-3 w-full bg-white border border-gray-200 rounded-md text-sm focus:border-primary focus:ring-primary dark:bg-bgdark dark:border-white/10 dark:text-white/70">
-                    <input type="radio" formControlName="isSeller" [value]="false" class="ti-form-radio">
-                    <span class="text-sm text-gray-500 ltr:ml-2 rtl:mr-2 dark:text-white/70">No</span>
-                  </label>
-                </div>
-              </div>
-
-
             </div>
 
 
@@ -414,7 +383,7 @@
                   </div>
                 </div>
 
-                <!-- User Password
+                <!-- User Password-->
                 <div class="p-2">
                   <label for="userPassword" class="block text-sm mb-2 dark:text-white">User password</label>
                   <div class="relative">
@@ -423,15 +392,15 @@
                       id="userPassword"
                       class="py-2 px-3 block w-full border-gray-200 rounded-sm text-sm focus:border-primary focus:ring-primary dark:bg-bgdark dark:border-white/10 dark:text-white/70"
                       placeholder="User password"
-                      formControlName="userPassword"
-                      [ngClass]="isSubmitted && form['userPassword'].errors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''"
+                      formControlName="password"
+                      [ngClass]="isSubmitted && form['password'].errors ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''"
                     />
-                    <div *ngIf="isSubmitted && form['userPassword'].errors" class="invalid-feedback">
-                      <p *ngIf="form['userPassword'].errors['required']" class="text-sm text-red-600 mt-2">This field is required.</p>
+                    <div *ngIf="isSubmitted && form['password'].errors" class="invalid-feedback">
+                      <p *ngIf="form['password'].errors['required']" class="text-sm text-red-600 mt-2">This field is required.</p>
                     </div>
                   </div>
                 </div>
-                 Confirm Password
+                 <!-- Confirm Password-->
                 <div class="p-2">
                   <label for="confirmPassword" class="block text-sm mb-2 dark:text-white">Confirm Password</label>
                   <div class="relative">
@@ -448,7 +417,7 @@
                       <p *ngIf="userForm.get('confirmPassword')?.errors?.['passwordMismatch']" class="text-sm text-red-600 mt-2">Passwords do not match.</p>
                     </div>
                   </div>
-                </div> -->
+                </div> 
 
                   <!-- Profile ID -->
                 <div class="p-2">
@@ -537,21 +506,6 @@
                   <label class="flex p-3 w-full bg-white border border-gray-200 rounded-md text-sm focus:border-primary focus:ring-primary dark:bg-bgdark dark:border-white/10 dark:text-white/70">
                     <input type="radio" formControlName="userAccessLevel" [value]="1" class="ti-form-radio">
                     <span class="text-sm text-gray-500 ltr:ml-2 rtl:mr-2 dark:text-white/70">Normal</span>
-                  </label>
-                </div>
-              </div>
-
-
-              <div class="p-2">
-                <label for="userAccountState" class="block text-sm mb-2 dark:text-white">Suspended</label>
-                <div class="grid sm:grid-cols-2 gap-2">
-                  <label class="flex p-3 w-full bg-white border border-gray-200 rounded-md text-sm focus:border-primary focus:ring-primary dark:bg-bgdark dark:border-white/10 dark:text-white/70">
-                    <input type="radio" formControlName="userAccountState" [value]="false" class="ti-form-radio">
-                    <span class="text-sm text-gray-500 ltr:ml-2 rtl:mr-2 dark:text-white/70">Yes</span>
-                  </label>
-                  <label class="flex p-3 w-full bg-white border border-gray-200 rounded-md text-sm focus:border-primary focus:ring-primary dark:bg-bgdark dark:border-white/10 dark:text-white/70">
-                    <input type="radio" formControlName="userAccountState"  [value]="true" class="ti-form-radio">
-                    <span class="text-sm text-gray-500 ltr:ml-2 rtl:mr-2 dark:text-white/70">No</span>
                   </label>
                 </div>
               </div>

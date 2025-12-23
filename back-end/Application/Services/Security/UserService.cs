@@ -1,15 +1,17 @@
-﻿using Domain.InterfacesStores.Security;
+﻿using AutoMapper;
+using Domain.DTO;
 using Domain.Entities.Configurations;
+using Domain.Entities.Security;
 using Domain.InterfacesServices.Security;
+using Domain.InterfacesStores.Security;
+using Domain.Models.Security;
+using Infrastructure.Exceptions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Domain.Models.Security;
-using Domain.Entities.Security;
-using Microsoft.Extensions.Configuration;
-using Domain.DTO;
-using AutoMapper;
 
 
 namespace Application.Service
@@ -27,11 +29,19 @@ namespace Application.Service
             _mapper = mapper;
         }
 
-        public async Task<UserModel?> CreateUser(UserCreateDTO userModel)
+        public async Task<UserModel?> CreateUser([FromBody] UserCreateDTO userModel)
         {
-            var user = _mapper.Map<User>(userModel);
-            var createdUser = await _userStore.CreateUser(user);
-            return createdUser != null ? _mapper.Map<UserModel>(createdUser) : null;
+            
+            try
+            {
+                var user = _mapper.Map<User>(userModel);
+                var createdUser = await _userStore.CreateUser(user);
+                return createdUser != null ? _mapper.Map<UserModel>(createdUser) : null;
+            }
+            catch (BusinessException ex)
+            {
+                throw new BusinessException(ex.Message);
+            }
         }
 
         public UserModel? GetUserById(int userId)

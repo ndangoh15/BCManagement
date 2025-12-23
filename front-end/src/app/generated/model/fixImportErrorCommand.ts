@@ -17,5 +17,8 @@ export interface FixImportErrorCommand {
     centreCode?: string | null;
     candidateNumber?: string | null;
     candidateName?: string | null;
+    expectedSession?: number;
+    expectedExamCode?: string | null;
+    expectedCentreCode?: string | null;
 }
 

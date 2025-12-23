@@ -12,7 +12,7 @@ import { firstValueFrom } from 'rxjs';
 import { GridApi } from 'ag-grid-community';
 import { closeModal } from 'src/app/helper/helper-function';
 import { AgGridThemeService } from 'src/app/services/theme/theme.service';
-
+import { ToastrService } from 'ngx-toastr';
 
 
 @Component({
@@ -40,8 +40,10 @@ export class UsersFormComponent implements OnInit, OnChanges {
 
   isSubmitted = false;
 
-  constructor( private formBuilder: FormBuilder, private localisationService: LocalisationService, private jobService: JobService, private profileService: ProfileService,
-private theme:AgGridThemeService, private userService: UserManagerService,private branchService: BranchService) {
+  constructor( private formBuilder: FormBuilder, 
+    private localisationService: LocalisationService, private jobService: JobService, private profileService: ProfileService,
+    private theme:AgGridThemeService, private userService: UserManagerService,private branchService: BranchService,
+    private toastrService: ToastrService) {
     this.initCreateForm();
   }
 
@@ -86,15 +88,16 @@ private theme:AgGridThemeService, private userService: UserManagerService,privat
     return this.userForm.controls;
   }
 
-  createOrUpdateUSer() {
+  /*createOrUpdateUSer() {
 
     this.isSubmitted = true;
+    this.error = '';
+
     if (this.userForm.valid) {
       const userCreateDTO: UserCreateDTO = {
         globalPersonID: this.userToUpdate?.globalPersonID,
         userLogin: this.form['userLogin'].value,
         userAccessLevel: this.form['userAccessLevel'].value,
-        userAccountState: this.form['userAccountState'].value,
         jobID: this.form['jobID'].value,
         adress: this.form['adress'].value,
         name: this.form['name'].value,
@@ -103,10 +106,12 @@ private theme:AgGridThemeService, private userService: UserManagerService,privat
         profileID: this.form['profileID'].value,
         sexID: this.form['sexID'].value,
         isConnected: this.form['isConnected'].value,
-        isMarketer: this.form['isMarketer'].value,
-        isSeller: this.form['isSeller'].value,
+        password: this.form['password'].value,
+        confirmPassword: this.form['confirmPassword'].value,
         branchID : this.form['branchID'].value
       }
+      console.log('PAYLOAD', userCreateDTO);
+
       if (this.userToUpdate) {
         this.userService.updateUser(userCreateDTO);
       } else {
@@ -118,7 +123,60 @@ private theme:AgGridThemeService, private userService: UserManagerService,privat
     }
 
 
-  }
+  }*/
+
+    createOrUpdateUSer() {
+    this.isSubmitted = true;
+    this.error = '';
+
+    if (this.userForm.invalid) return;
+
+    const payload: UserCreateDTO = {
+      globalPersonID: this.userToUpdate?.globalPersonID,
+      userLogin: this.form['userLogin'].value,
+      userAccessLevel: this.form['userAccessLevel'].value,
+      jobID: this.form['jobID'].value,
+      adress: this.form['adress'].value,
+      name: this.form['name'].value,
+      description: this.form['description'].value,
+      cni: this.form['cni'].value,
+      profileID: this.form['profileID'].value,
+      sexID: this.form['sexID'].value,
+      isConnected: this.form['isConnected'].value,
+      password: this.form['password'].value,
+      confirmPassword: this.form['confirmPassword'].value,
+      branchID: this.form['branchID'].value,
+      userAccountState: true
+    };
+
+    const request$ = this.userToUpdate
+      ? this.userService.updateUser(payload)
+      : this.userService.addUser(payload);
+
+    request$.subscribe({
+      next: (user) => {
+        this.isSubmitted = false;
+
+        if (user.isConnected) {
+          this.toastrService.success('User added successfully');
+        } else {
+          this.toastrService.warning('Non-user added (not listed)');
+        }
+
+        closeModal("user-create-form");
+      },
+      error: (err) => {
+        console.error('BACKEND ERROR', err);
+        this.isSubmitted = false;
+        //this.error = err?.error?.message ?? 'Unexpected error occurred';
+        const message = err?.error?.message ?? err?.error ?? 'An unexpected error occurred';
+
+      this.toastrService.error(message);
+      }
+    });
+}
+
+
 
   addEventListerneToQuarterSearch(){
     this.userForm.get('adress.countryID')?.valueChanges.subscribe(countryId => {
@@ -189,7 +247,6 @@ private theme:AgGridThemeService, private userService: UserManagerService,privat
       code: [null],
       userLogin: [null],
       userAccessLevel: [1],
-      userAccountState: [true],
       jobID: [null, Validators.required],
       adress: this.formBuilder.group({
         adressPhoneNumber: [null, Validators.required],
@@ -211,9 +268,9 @@ private theme:AgGridThemeService, private userService: UserManagerService,privat
       profileID: [null],
       sexID: [1, Validators.required],
       isConnected: [false],
-      isMarketer: [true],
-      isSeller: [true],
-      branchID: [null, Validators.required]
+      branchID: [null, Validators.required],
+      password: [null],
+      confirmPassword: [null],
     });
   }
 
@@ -224,7 +281,6 @@ private theme:AgGridThemeService, private userService: UserManagerService,privat
       code: [user.code],
       userLogin: [ { value: user.userLogin, disabled: true }],
       userAccessLevel: [user.userAccessLevel],
-      userAccountState: [user.userAccountState],
       jobID: [user.jobID, Validators.required],
       adress: this.formBuilder.group({
         adressID: [user.adress?.adressID],
@@ -247,9 +303,9 @@ private theme:AgGridThemeService, private userService: UserManagerService,privat
       profileID: [user.profileID, Validators.required],
       sexID: [user.sex?.sexID ?? 1, Validators.required],
       isConnected: [user.isConnected],
-      isMarketer: [user.isMarketer],
-      isSeller: [user.isSeller],
-      branchID: [user.branchID, Validators.required]
+      branchID: [user.branchID, Validators.required],
+      password: [null],
+      confirmPassword: [null],
     });
   }
 

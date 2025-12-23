@@ -2,6 +2,7 @@
 using Application.Features.CandDocs.Queries;
 using Application.Service;
 using Domain.Entities.Security;
+using Domain.InterfacesServices;
 using Domain.InterfacesServices.Security;
 using ImageMagick;
 using Infrastructure.Exceptions;
@@ -9,6 +10,7 @@ using Insfrastructure;
 using Insfrastructure.Mapper;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
 using WebAPI.Extensions;
 
@@ -51,6 +53,11 @@ builder.Services.Configure<FormOptions>(options =>
 builder.Services.Configure<IISServerOptions>(options =>
 {
     options.MaxRequestBodySize = maxUploadSize;
+});
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.SuppressModelStateInvalidFilter = true;
 });
 
 // ---- 4) IIS Express web.config will override these values,

@@ -10,9 +10,12 @@ namespace Domain.DTO
 {
     public class UserCreateDTO
     {
-        public int GlobalPersonID { get; set; }
+        public int? GlobalPersonID { get; set; }
         public string? Code { get; set; }
         public string? UserLogin { get; set; }
+        public string? Password { get; set; }
+        public string? ConfirmPassword { get; set; }
+
         public int UserAccessLevel { get; set; }
         public bool UserAccountState { get; set; }
         public int JobID { get; set; }
@@ -23,13 +26,11 @@ namespace Domain.DTO
         public string CNI { get; set; }
 
         public int? ProfileID { get; set; }
-
         public int BranchID { get; set; }
 
         public int SexID { get; set; }
 
         public bool IsConnected { get; set; }
-        public bool IsMarketer { get; set; }
-        public bool IsSeller { get; set; }
+
     }
 }

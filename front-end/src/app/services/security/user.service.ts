@@ -32,42 +32,12 @@ export class UserManagerService {
     });
   }
 
-  addUser(user: UserCreateDTO): void {
-    this.userService.userControllerCreateUser(user).pipe(
-      catchError(error => {
-        this.userListSubject.error(error);
-        return throwError(() => new Error('Failed to add user', error));
-      })
-    ).subscribe(createdUser => {
-      if (createdUser.isConnected) {
-        this.userList.push(createdUser);
-        this.emitUserList();
-
-        this.toastrService.success("User Added successfuly")
-      }else{
-        this.toastrService.warning("a Non  User was Added successfuly, non user are not in this list")
-      }
-
-      this.closePopup();
-
-    });
+  addUser(user: UserCreateDTO) {
+    return this.userService.userControllerCreateUser(user);
   }
 
-  updateUser(user: UserCreateDTO): void {
-    this.userService.userControllerUpdateUser(user).pipe(
-      catchError(error => {
-        this.userListSubject.error(error);
-        return throwError(() => new Error('Failed to update user', error));
-      })
-    ).subscribe(updatedUser => {
-      const index = this.userList.findIndex(u => u.globalPersonID === updatedUser.globalPersonID);
-      if (index !== -1) {
-        this.userList[index] = updatedUser;
-        this.emitUserList();
-        this.closePopup();
-        this.toastrService.success("Added successfuly")
-      }
-    });
+  updateUser(user: UserCreateDTO) {
+    return this.userService.userControllerUpdateUser(user);
   }
 
   deleteUser(id: number): void {
