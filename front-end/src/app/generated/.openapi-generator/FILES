@@ -42,6 +42,7 @@ model/problemDetails.ts
 model/profileModel.ts
 model/quarterModel.ts
 model/regionModel.ts
+model/searchCandidateDocumentsRequest.ts
 model/sexModel.ts
 model/subMenuModel.ts
 model/townModel.ts

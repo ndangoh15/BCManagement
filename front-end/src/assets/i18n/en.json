@@ -130,6 +130,7 @@
     "LEAVE_TYPE": "Leaves types",
     "DOCUMENT_IMPORT": "Import Pdf Files",
     "COMP_CERTIFICATIONS":"Certifications",
-    "EDIT_IMPORT":"Edit Errors"
+    "EDIT_IMPORT":"Edit Errors",
+    "SEARCH_ENGINE": "Search Engine"
   }
 }

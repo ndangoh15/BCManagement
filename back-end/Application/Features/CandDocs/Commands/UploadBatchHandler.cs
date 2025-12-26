@@ -77,7 +77,18 @@ namespace Application.Features.CandDocs.Commands
                 // ----------------------------------------------------------
                 byte[] originalBytes = await File.ReadAllBytesAsync(request.ServerSourceFilePath);
 
-                
+                try
+                {
+                    using var test = PdfUtils.OpenLenient(originalBytes);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "PDF non standard détecté, tentative de réparation");
+
+                    originalBytes = PdfUtils.RewritePdf(originalBytes);
+                }
+
+
                 // ----------------------------------------------------------
                 // 2. SPLIT INTO SINGLE PAGES (PAGE 1 + PAGE 2)
                 // ----------------------------------------------------------
@@ -100,7 +111,7 @@ namespace Application.Features.CandDocs.Commands
                     //string ocrText = await _ocr.ExtractTextFromPdfAsync(page1, 1);
                     string ocrText;
 
-                    await OcrExecutionGate.Semaphore.WaitAsync();
+                    /*await OcrExecutionGate.Semaphore.WaitAsync();
                     try
                     {
                         ocrText = await _ocr.ExtractTextFromPdfAsync(page1, 1);
@@ -108,6 +119,32 @@ namespace Application.Features.CandDocs.Commands
                     finally
                     {
                         OcrExecutionGate.Semaphore.Release();
+                    }*/
+
+                    bool semaphoreAcquired = false;
+
+                    try
+                    {
+                        await OcrExecutionGate.Semaphore.WaitAsync();
+                        semaphoreAcquired = true;
+
+                        ocrText = await _ocr.ExtractTextFromPdfAsync(page1, 1);
+                    }
+                    finally
+                    {
+                        if (semaphoreAcquired)
+                        {
+                            try
+                            {
+                                OcrExecutionGate.Semaphore.Release();
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning(ex, ex.Message + " - " + ex.InnerException);
+
+                            }
+                        }
+                            
                     }
 
 

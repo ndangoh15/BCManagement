@@ -1,0 +1,53 @@
+<mat-card class="search-panel">
+
+  <!-- Ligne 1 : Filtres -->
+  <div class="filters-row">
+    <div class="field">
+      <label>Session</label>
+      <input matInput type="number" [(ngModel)]="session">
+    </div>
+
+    <div class="field">
+      <label>Exam Code</label>
+      <input matInput [(ngModel)]="examCode">
+    </div>
+
+    <div class="field">
+      <label>Centre Code</label>
+      <mat-select [(ngModel)]="centerNumber">
+        <mat-option value="">All Centres</mat-option>
+      </mat-select>
+    </div>
+  </div>
+
+  <!-- Ligne 2 : Recherche principale -->
+  <div class="search-row">
+    <mat-icon class="search-icon">search</mat-icon>
+    <input
+      matInput
+      class="search-input"
+      placeholder="Search candidate by NAME (required)"
+      [(ngModel)]="keyword">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="search()">
+      Search
+    </button>
+  </div>
+
+</mat-card>
+
+
+
+
+<ag-grid-angular
+  class="ag-theme-alpine"
+  style="width:100%; height:600px"
+  rowModelType="infinite"
+  [columnDefs]="columnDefs"
+  [defaultColDef]="defaultColDef"
+  [cacheBlockSize]="50"
+  [maxBlocksInCache]="2"
+  (gridReady)="onGridReady($event)">
+</ag-grid-angular>

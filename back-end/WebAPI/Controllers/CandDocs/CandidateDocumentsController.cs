@@ -1,24 +1,39 @@
 ﻿using Application.Features.CandDocs.Queries;
-using Microsoft.AspNetCore.Authorization;
+using Domain.DTO.Requests;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-[Authorize]
 [ApiController]
 [Route("api/candidate-documents")]
 public class CandidateDocumentsController : ControllerBase
 {
-    private readonly GetCandidateDocumentForEditQuery _query;
+    private readonly IMediator _mediator;
 
-    public CandidateDocumentsController(GetCandidateDocumentForEditQuery query)
+    public CandidateDocumentsController(IMediator mediator)
     {
-        _query = query;
+        _mediator = mediator;
     }
 
-    [HttpGet("{id}/edit")]
-    public async Task<IActionResult> GetForEdit(int id)
+    [HttpPost("search")]
+    public async Task<IActionResult> Search(
+        [FromBody] SearchCandidateDocumentsRequest request)
     {
-        var result = await _query.ExecuteAsync(id);
-        if (result == null) return NotFound();
+        // 👉 FluentValidation s’exécute automatiquement ici
+        // Si invalide → 400 BadRequest
+
+        var query = new SearchDocumentQuery
+        {
+            CandidateName = request.CandidateName,
+            CandidateNumber = request.CandidateNumber,
+            CenterNumber = request.CenterNumber,
+            ExamCode = request.ExamCode,
+            Session = request.Session,
+            Page = request.Page,
+            PageSize = request.PageSize
+        };
+
+        var result = await _mediator.Send(query);
+
         return Ok(result);
     }
 }

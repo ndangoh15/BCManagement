@@ -12,12 +12,15 @@ import { ImportErrorsComponent } from './import-errors/import-errors.component';
 import { FixImportErrorComponent } from './import-errors/fix-import-error/fix-import-error.component';
 import { MaterialModule } from 'src/app/materialModule/material-module/material-module.module';
 
+import { CandidateSearchComponent } from './candidate-search/candidate-search.component';
+
 @NgModule({
   declarations: [
     ImportedBatchesComponent,
     ImportMultipleComponent,
     ImportErrorsComponent,
-    FixImportErrorComponent
+    FixImportErrorComponent,
+    CandidateSearchComponent
   ],
   imports: [
     CommonModule,
@@ -27,7 +30,7 @@ import { MaterialModule } from 'src/app/materialModule/material-module/material-
     ReactiveFormsModule,
     DocumentsRoutingModule,
     SharedModule  ,
-    MaterialModule    
+    MaterialModule  
   ]
 })
 export class DocumentsModule { }

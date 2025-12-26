@@ -7,6 +7,7 @@ using Domain.InterfacesStores.Security;
 using Microsoft.Extensions.DependencyInjection;
 using Application.Features.CandDocs.Commands;
 using Application.Features.CandDocs.Queries;
+using BCDocumentManagement.Application.Features.CandDocs.Queries;
 
 namespace Application
 {
@@ -38,7 +39,8 @@ namespace Application
 
             services.AddScoped<GetImportErrorsHandler>();
             services.AddScoped<GetInvalidCentreCodesQuery>();
-
+            services.AddScoped<GetCandidateDocumentForEditQuery>();
+            services.AddScoped<SearchDocumentHandler>();
 
             return services;
         }

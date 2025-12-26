@@ -123,7 +123,9 @@ namespace Infrastructure.Initialiser
                  // DOCUMENT IMPORTATION
                 new { Code = "DOCUMENT_IMPORT", Label = "Document", Controller = "Document", Path = "documents/imported-batches", ModuleCode = "MODULE_ADMINISTRATION" },
                 // EDIT IMPORTATION
-                new { Code = "EDIT_IMPORT", Label = "EditImport", Controller = "ImportErrors", Path = "documents/import-errors", ModuleCode = "MODULE_ADMINISTRATION" },
+                new { Code = "EDIT_IMPORT", Label = "Edit Import", Controller = "ImportErrors", Path = "documents/import-errors", ModuleCode = "MODULE_ADMINISTRATION" },
+                // SEARCH ENGINE
+                new { Code = "SEARCH_ENGINE", Label = "Search Engine", Controller = "CandidateDocuments", Path = "documents/candidate-search", ModuleCode = "MODULE_ADMINISTRATION" },
             };
 
             var menuCodesInConfig = menus.Select(m => m.Code).ToHashSet();

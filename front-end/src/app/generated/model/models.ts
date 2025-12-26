@@ -22,6 +22,7 @@ export * from './problemDetails';
 export * from './profileModel';
 export * from './quarterModel';
 export * from './regionModel';
+export * from './searchCandidateDocumentsRequest';
 export * from './sexModel';
 export * from './subMenuModel';
 export * from './townModel';

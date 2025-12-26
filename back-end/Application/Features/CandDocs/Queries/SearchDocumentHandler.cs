@@ -1,6 +1,8 @@
-﻿using Application.Features.CandDocs.Queries;
+﻿using Application.Common.Models;
+using Application.Features.CandDocs.Queries;
 using Domain.Entities.CandDocs;
 using Domain.InterfacesStores.CandDocs;
+using Microsoft.EntityFrameworkCore;
 
 namespace BCDocumentManagement.Application.Features.CandDocs.Queries
 {
@@ -13,16 +15,27 @@ namespace BCDocumentManagement.Application.Features.CandDocs.Queries
             _repo = repo;
         }
 
-        public async Task<List<CandidateDocument>> HandleAsync(SearchDocumentQuery query, CancellationToken ct = default)
+        public async Task<PagedResult<CandidateDocument>> HandleAsync( SearchDocumentQuery query,    CancellationToken ct)
         {
-            var raw = await _repo.SearchAsync(query.CandidateName, query.CandidateNumber, query.CenterNumber);
+            if (query.Session <= 0)
+                throw new ArgumentException("Session is required");
 
-            // simple pagination
-            var paged = raw.Skip((Math.Max(1, query.Page) - 1) * query.PageSize)
-                           .Take(query.PageSize)
-                           .ToList();
+            var baseQuery = _repo.Search(query.CandidateName,query.CandidateNumber, query.CenterNumber,query.ExamCode,query.Session);
 
-            return paged;
+            var total = await baseQuery.CountAsync(ct);
+
+            var items = await baseQuery
+                .OrderBy(x => x.CandidateName)
+                .Skip((query.Page - 1) * query.PageSize)
+                .Take(query.PageSize)
+                .ToListAsync(ct);
+
+            return new PagedResult<CandidateDocument>
+            {
+                TotalCount = total,
+                Items = items
+            };
         }
+
     }
 }

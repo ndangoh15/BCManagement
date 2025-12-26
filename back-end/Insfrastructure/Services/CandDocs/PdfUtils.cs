@@ -1,11 +1,12 @@
-﻿using iText.Kernel.Pdf;
+﻿
+using iText.Kernel.Pdf;
 
 namespace Infrastructure.Services.CandDocs
 {
     public static class PdfUtils
     {
-        
-        public static async Task<List<byte[]>> SplitPdfByPageAsync(byte[] pdfBytes)
+
+        /*public static async Task<List<byte[]>> SplitPdfByPageAsync(byte[] pdfBytes)
         {
             var list = new List<byte[]>();
 
@@ -28,6 +29,59 @@ namespace Infrastructure.Services.CandDocs
             }
 
             return list;
+        }*/
+
+        public static async Task<List<byte[]>> SplitPdfByPageAsync(byte[] pdfBytes)
+        {
+            var pages = new List<byte[]>();
+
+            try
+            {
+                using var ms = new MemoryStream(pdfBytes, writable: false);
+                using var reader = new PdfReader(ms);
+                using var src = new PdfDocument(reader);
+
+                int total = src.GetNumberOfPages();
+
+                for (int i = 1; i <= total; i++)
+                {
+                    using var outMs = new MemoryStream();
+                    using var writer = new PdfWriter(outMs);
+                    using var dest = new PdfDocument(writer);
+
+                    src.CopyPagesTo(i, i, dest);
+                    dest.Close();
+
+                    pages.Add(outMs.ToArray());
+                }
+
+                return pages;
+            }
+            catch (Exception)
+            {
+                // 🔁 Fallback: tentative de réparation
+                byte[] repaired = RewritePdf(pdfBytes);
+
+                using var ms = new MemoryStream(repaired, writable: false);
+                using var reader = new PdfReader(ms);
+                using var src = new PdfDocument(reader);
+
+                int total = src.GetNumberOfPages();
+
+                for (int i = 1; i <= total; i++)
+                {
+                    using var outMs = new MemoryStream();
+                    using var writer = new PdfWriter(outMs);
+                    using var dest = new PdfDocument(writer);
+
+                    src.CopyPagesTo(i, i, dest);
+                    dest.Close();
+
+                    pages.Add(outMs.ToArray());
+                }
+
+                return pages;
+            }
         }
 
 
@@ -63,6 +117,31 @@ namespace Infrastructure.Services.CandDocs
 
             return outMs.ToArray();
         }
+
+        public static PdfDocument OpenLenient(byte[] pdfBytes)
+        {
+            var ms = new MemoryStream(pdfBytes, writable: false);
+
+            var reader = new PdfReader(ms);
+
+            return new PdfDocument(reader);
+        }
+
+        public static byte[] RewritePdf(byte[] input)
+        {
+            using var inputStream = new MemoryStream(input, writable: false);
+            using var reader = new PdfReader(inputStream);
+
+            using var outputStream = new MemoryStream();
+            using var writer = new PdfWriter(outputStream);
+
+            using var pdf = new PdfDocument(reader, writer);
+            pdf.Close();
+
+            return outputStream.ToArray();
+        }
+
+
 
     }
 }

@@ -456,8 +456,6 @@ namespace Tests.IntegrationTests.API.Security
                 BranchID = 1,
                 SexID = 1,
                 IsConnected = false,
-                IsMarketer = false,
-                IsSeller = true,
                 ProfileID = null,
                 Tiergroup = "Default",
                 Code = $"USR_{login}"

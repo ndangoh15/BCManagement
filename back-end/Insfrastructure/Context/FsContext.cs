@@ -87,21 +87,18 @@ namespace Infrastructure.Context
                 .OnDelete(DeleteBehavior.Cascade);
 
             ////CandidateDocument
-            //modelBuilder.Entity<CandidateDocument>()
-            //    .HasKey(x => x.Id);
+           
+            modelBuilder.Entity<CandidateDocument>(entity =>
+            {
+                entity.HasIndex(x => new { x.Session, x.ExamCode, x.CentreCode })
+                      .HasDatabaseName("IX_CandidateDocuments_Session_Exam_Centre");
 
-            //modelBuilder.Entity<CandidateDocument>().HasMany(x => x.ImportErrors)
-            //       .WithOne(e => e.CandidateDocument)
-            //       .HasForeignKey(e => e.CandidateDocumentId)
-            //       .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(x => new { x.Session, x.ExamCode, x.CandidateNumber })
+                      .HasDatabaseName("IX_CandidateDocuments_Session_Exam_CandidateNumber");
 
-            //modelBuilder.Entity<CandidateDocument>().HasIndex(x => x.IsValid);
-            //modelBuilder.Entity<CandidateDocument>().HasIndex(x => new { x.CentreCode, x.Session });
-
-            ////ImportError
-            //modelBuilder.Entity<ImportError>().HasKey(x => x.Id);
-
-            //modelBuilder.Entity<ImportError>().HasIndex(x => x.CandidateDocumentId);
+                entity.HasIndex(x => new { x.Session, x.ExamCode, x.CandidateName })
+                      .HasDatabaseName("IX_CandidateDocuments_Session_Exam_CandidateName");
+            });
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

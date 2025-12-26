@@ -318,6 +318,7 @@
     "ValidateExamSale":"Validate Exam Sale",
     "ValidateMedicamentSale":"Validate Medicament Sale",
     "DOCUMENT_IMPORT": "Importation fichiers Pdf",
-    "EDIT_IMPORT":"Editer les Erreurs"
+    "EDIT_IMPORT":"Editer les Erreurs",
+    "SEARCH_ENGINE": "Moteur de recherche"
   }
 }

@@ -40,6 +40,47 @@ namespace Infrastructure.Repositories.CandDocs
             await _ctx.ImportErrors.AddRangeAsync(errors);
             await _ctx.SaveChangesAsync();
         }
+
+        public IQueryable<CandidateDocument> Search(
+           string name,
+           string? candidateNumber,
+           string? centerNumber,
+           string? examCode,
+           int? session
+       )
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("Candidate name is required", nameof(name));
+
+            IQueryable<CandidateDocument> query = _ctx.CandidateDocuments;
+
+            // 🔴 Recherche principale (obligatoire)
+            query = query.Where(x =>
+                x.CandidateName != null &&
+                x.CandidateName.Contains(name)
+            );
+
+            // 🟢 Filtres optionnels
+            if (!string.IsNullOrWhiteSpace(candidateNumber))
+                query = query.Where(x =>
+                    x.CandidateNumber != null &&
+                    x.CandidateNumber.Contains(candidateNumber)
+                );
+
+            if (!string.IsNullOrWhiteSpace(centerNumber))
+                query = query.Where(x => x.CentreCode == centerNumber);
+
+            if (!string.IsNullOrWhiteSpace(examCode))
+                query = query.Where(x => x.ExamCode == examCode);
+
+            if (session.HasValue)
+                query = query.Where(x => x.Session == session.Value);
+
+            return query;
+        }
+
+
+
         public async Task<List<CandidateDocument>> SearchAsync(string name, string candidatenumber, string centerNumber)
         {
             return await _ctx.CandidateDocuments

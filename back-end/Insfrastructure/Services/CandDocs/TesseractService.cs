@@ -1,10 +1,6 @@
-﻿using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using Tesseract;
+﻿using Tesseract;
 using ImageMagick;
 using Domain.InterfacesServices.CandDocs;
-using SkiaSharp;
 
 namespace Infrastructure.Services.CandDocs
 {
@@ -71,52 +67,6 @@ namespace Infrastructure.Services.CandDocs
             }
         }
 
-
-
-        /*public async Task<string> ExtractTextFromPdfAsync(byte[] pdfBytes, int pageNumber = 1)
-        {
-            try
-            {
-                if (pdfBytes == null || pdfBytes.Length == 0)
-                    return string.Empty;
-
-                var settings = new MagickReadSettings
-                {
-                    Density = new Density(150),     // 200 is enough
-                    FrameIndex = (uint)(pageNumber - 1),
-                    FrameCount = 1,
-                    Format = MagickFormat.Png
-                };
-
-                using var ms = new MemoryStream(pdfBytes);
-                using var images = new MagickImageCollection();
-                images.Read(ms, settings);
-
-                if (images.Count == 0)
-                    return string.Empty;
-
-                using var img = (MagickImage)images[0];
-
-                // BEST SETTINGS FOR GCE DOCUMENTS
-                img.ColorType = ColorType.Grayscale;
-                img.Normalize();          // Keep only Normalize()
-                img.Despeckle();          // Light – this one is safe
-
-                // ❌ DO NOT SHARPEN
-                // ❌ DO NOT ENHANCE
-                // ❌ DO NOT DESKEW (GCE is already aligned)
-                // ❌ DO NOT REDUCE NOISE
-
-                using var pngStream = new MemoryStream();
-                await img.WriteAsync(pngStream, MagickFormat.Png);
-
-                return ExtractWithTesseract(pngStream.ToArray());
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("OCR error: " + ex.Message, ex);
-            }
-        }*/
 
         private string ExtractWithTesseract(byte[] imageBytes)
         {

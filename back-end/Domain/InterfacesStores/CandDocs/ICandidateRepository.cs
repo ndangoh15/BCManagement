@@ -16,6 +16,13 @@ namespace Domain.InterfacesStores.CandDocs
         Task<List<CandidateDocument>> GetDocumentsAsync(int session, string centre);
         Task AddImportErrorsAsync(IEnumerable<ImportError> errors);
         Task<List<CandidateDocument>> SearchAsync(string name, string candidatenumber, string centerNumber);
+        IQueryable<CandidateDocument> Search(
+           string name,
+           string? candidateNumber,
+           string? centerNumber,
+           string? examCode,
+           int? session
+       );
 
         Task<bool> HasBatchBeenImportedAsync(string fileName, int year, string examCode, string center);
         Task DeleteDocumentsForBatchAsync(int year, string examCode, string center);
