@@ -4,19 +4,22 @@
   <div class="filters-row">
     <div class="field">
       <label>Session</label>
-      <input matInput type="number" [(ngModel)]="session">
+      <input matInput type="number" [(ngModel)]="session" placeholder="e.g. 2025">
     </div>
 
     <div class="field">
       <label>Exam Code</label>
-      <input matInput [(ngModel)]="examCode">
+      <input matInput [(ngModel)]="examCode" type="text"
+        placeholder="e.g. 5100">
     </div>
 
     <div class="field">
       <label>Centre Code</label>
-      <mat-select [(ngModel)]="centerNumber">
-        <mat-option value="">All Centres</mat-option>
-      </mat-select>
+      <input
+        matInput
+        type="text"
+        placeholder="e.g. 13028"
+        [(ngModel)]="centerNumber" (input)="centerNumber = centerNumber.trim()">
     </div>
   </div>
 

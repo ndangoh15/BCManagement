@@ -6,9 +6,18 @@ using System.Threading.Tasks;
 
 namespace Domain.DTO.CandDocs
 {
-    public class CandidateDocumentDTO
+    public class CandidateDocumentDto
     {
-        public string CandidateName { get; set; } = "";
+        public int Id { get; set; }
+        public string CandidateNumber { get; set; } = string.Empty;
+        public string CandidateName { get; set; } = string.Empty;
+
+        public string CentreCode { get; set; } = string.Empty;
+        public string ExamCode { get; set; } = string.Empty;
+        public int Session { get; set; }
+
+        // 🔗 Pour ouvrir / preview le PDF
         public string FilePath { get; set; } = string.Empty;
     }
+
 }

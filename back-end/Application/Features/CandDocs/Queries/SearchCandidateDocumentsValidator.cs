@@ -4,8 +4,7 @@ using FluentValidation;
 namespace Application.Features.CandDocs.Queries
 {
 
-    public class SearchCandidateDocumentsRequestValidator
-    : AbstractValidator<SearchCandidateDocumentsRequest>
+    public class SearchCandidateDocumentsRequestValidator  : AbstractValidator<SearchCandidateDocumentsRequest>
     {
         public SearchCandidateDocumentsRequestValidator()
         {

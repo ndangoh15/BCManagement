@@ -136,6 +136,9 @@ builder.Services.AddInfrastructureStores();
 builder.Services.AddApplicationServices();
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetImportErrorDetailQuery).Assembly));
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(SearchDocumentQuery).Assembly));
+
+
 
 
 var app = builder.Build();

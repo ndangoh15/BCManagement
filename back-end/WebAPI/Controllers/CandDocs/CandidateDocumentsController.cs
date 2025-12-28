@@ -1,8 +1,11 @@
 ﻿using Application.Features.CandDocs.Queries;
 using Domain.DTO.Requests;
+using Infrastructure.Context;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+[Authorize]
 [ApiController]
 [Route("api/candidate-documents")]
 public class CandidateDocumentsController : ControllerBase
@@ -15,15 +18,11 @@ public class CandidateDocumentsController : ControllerBase
     }
 
     [HttpPost("search")]
-    public async Task<IActionResult> Search(
-        [FromBody] SearchCandidateDocumentsRequest request)
+    public async Task<IActionResult> Search(    [FromBody] SearchCandidateDocumentsRequest request,   CancellationToken cancellationToken)
     {
-        // 👉 FluentValidation s’exécute automatiquement ici
-        // Si invalide → 400 BadRequest
-
         var query = new SearchDocumentQuery
         {
-            CandidateName = request.CandidateName,
+            CandidateName = request.CandidateName.Trim(),
             CandidateNumber = request.CandidateNumber,
             CenterNumber = request.CenterNumber,
             ExamCode = request.ExamCode,
@@ -32,8 +31,22 @@ public class CandidateDocumentsController : ControllerBase
             PageSize = request.PageSize
         };
 
-        var result = await _mediator.Send(query);
+        var result = await _mediator.Send(query, cancellationToken);
 
         return Ok(result);
     }
+
+    [HttpGet("{id}/file")]
+    public async Task<IActionResult> GetFile( int id, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(new GetCandidateDocumentFileQuery { DocumentId = id },
+            cancellationToken);
+
+        if (result == null)
+            return NotFound();
+
+        return result;
+    }
+
+
 }

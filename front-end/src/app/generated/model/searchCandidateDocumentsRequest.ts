@@ -11,10 +11,11 @@
 
 
 export interface SearchCandidateDocumentsRequest { 
-    session?: number;
-    examCode?: string | null;
-    keyword?: string | null;
+    candidateName?: string | null;
+    candidateNumber?: string | null;
     centerNumber?: string | null;
+    examCode?: string | null;
+    session?: number | null;
     page?: number;
     pageSize?: number;
 }
