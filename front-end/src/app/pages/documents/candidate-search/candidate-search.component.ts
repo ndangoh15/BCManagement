@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { ColDef, GridApi, GridReadyEvent, IDatasource , ICellRendererParams} from 'ag-grid-community';
 import { CandidateDocumentsManager } from 'src/app/services/documents/candidate-documents.manager';
+import { MatDialog } from '@angular/material/dialog';
+import { PdfPreviewComponent } from 'src/app/shared/pdf-preview/pdf-preview.component';
 
 @Component({
   selector: 'app-candidate-search',
@@ -25,15 +27,19 @@ export class CandidateSearchComponent {
     { field: 'session', headerName: 'Session', width: 100 },
     {
       headerName: 'Document',
-      width: 110,
-      cellRenderer: (params: ICellRendererParams) => {
-        const btn = document.createElement('button');
-        btn.innerText = 'View';
-        btn.classList.add('btn-view');
-        btn.onclick = () => this.openPdf(params.data.id);
-        return btn;
+      cellRenderer: (params: any) => {
+        const button = document.createElement('button');
+        button.innerText = 'View';
+        button.classList.add('view-btn');
+
+        button.addEventListener('click', () => {
+          this.openPdf(params.data.id);
+        });
+
+        return button;
       }
     }
+
   ];
 
   defaultColDef: ColDef = {
@@ -41,29 +47,23 @@ export class CandidateSearchComponent {
     resizable: true
   };
 
-  constructor(private facade: CandidateDocumentsManager) {}
+  constructor(private facade: CandidateDocumentsManager,
+    private dialog: MatDialog) {}
 
-/*openPdf(row: any): void {
-  if (!row?.id) {
-    alert('Document not available');
-    return;
-  }
-  const url = this.facade.getDocumentFileUrl(row.id);
-  window.open(url, '_blank');
-}*/
 
-openPdf(id: number): void {
-  this.facade.getDocumentFile(id).subscribe({
-    next: blob => {
-      const url = URL.createObjectURL(blob);
-      window.open(url);
-    },
-    error: err => {
-      console.error('Unable to open PDF', err);
-      alert('You are not authorized to view this document');
+openPdf(documentId: number): void {
+  this.dialog.open(PdfPreviewComponent, {
+    width: '100vw',
+    height: '100vh',
+    maxWidth: '100vw',
+    panelClass: 'pdf-dialog',
+    data: {
+      documentId
     }
   });
 }
+
+
 
 
 

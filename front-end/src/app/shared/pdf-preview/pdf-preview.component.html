@@ -1,0 +1,22 @@
+<div class="pdf-container">
+
+  <mat-progress-spinner
+    *ngIf="loading"
+    mode="indeterminate">
+  </mat-progress-spinner>
+
+  <iframe
+    *ngIf="pdfUrl"
+    [src]="pdfUrl"
+    class="pdf-frame">
+  </iframe>
+
+</div>
+
+<button
+  mat-raised-button
+  color="primary"
+  class="close-btn"
+  mat-dialog-close>
+  Close
+</button>

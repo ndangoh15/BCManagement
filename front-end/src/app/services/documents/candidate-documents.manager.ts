@@ -22,11 +22,6 @@ export class CandidateDocumentsManager {
     return this.api.candidateDocumentsControllerSearch(request) as Observable<PagedResult<CandidateDocumentDto>>;
   }
 
-  // 📄 URL sécurisée pour ouvrir le PDF
-  /*getDocumentFileUrl(documentId: number): string {
-    return `${this.api.configuration.basePath}/api/candidate-documents/${documentId}/file`;
-  }*/
-
 // 📄 GET PDF (AUTHORIZED, BLOB SAFE)
 
   getDocumentFile(id: number): Observable<Blob> {
@@ -41,5 +36,16 @@ export class CandidateDocumentsManager {
       map((res: HttpResponse<any>) => res.body as Blob)
     );
   }
+
+  // ✅ Récupération du PDF (Blob)
+  getFile(id: number): Observable<Blob> {
+  return this.api.candidateDocumentsControllerGetFile(
+    id,
+    'body',
+    false,
+    { httpHeaderAccept: 'application/pdf' } as any
+  ) as Observable<Blob>;
+}
+
   
 }

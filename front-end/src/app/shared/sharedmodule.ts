@@ -19,6 +19,8 @@ import { ActionCellRendererComponent } from '../pages/component/action-cell-rend
 import { ActionCellRendererAddComponent } from '../pages/component/action-cell-renderer-add/action-cell-renderer-add.component';
 import { DetailCellRendererJourney } from '../pages/component/detail-cell-renderer-journey/detail-cell-renderer-journey';
 import { SafeUrlPipe } from './pipes/safe-url.pipe';
+import { PdfPreviewComponent } from './pdf-preview/pdf-preview.component';
+import { MaterialModule } from "src/app/materialModule/material-module/material-module.module";
 
 @NgModule({
   declarations: [
@@ -36,15 +38,17 @@ import { SafeUrlPipe } from './pipes/safe-url.pipe';
     ActionCellRendererComponent,
     ActionCellRendererAddComponent,
     DetailCellRendererJourney,
-    SafeUrlPipe   
+    SafeUrlPipe   ,
+    PdfPreviewComponent
   ],
   imports: [
     CommonModule,
     RouterModule,
     SimplebarAngularModule,
     ColorPickerModule,
-    FormsModule
-  ],
+    FormsModule,
+    MaterialModule
+],
 
   exports: [
     FullLayoutComponent,
