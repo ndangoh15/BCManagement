@@ -9,6 +9,7 @@ namespace Domain.DTO.CandDocs
     public class CandidateDocumentDto
     {
         public int Id { get; set; }
+
         public string CandidateNumber { get; set; } = string.Empty;
         public string CandidateName { get; set; } = string.Empty;
 
