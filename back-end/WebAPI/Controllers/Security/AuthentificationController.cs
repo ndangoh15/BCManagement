@@ -21,7 +21,7 @@ namespace WebAPI.Controllers
             _userService = userService;
         }
 
-
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponse>> Login(LoginRequestDtoIn model)
         {
