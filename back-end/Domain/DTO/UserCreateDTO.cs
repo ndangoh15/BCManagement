@@ -13,7 +13,7 @@ namespace Domain.DTO
         public int? GlobalPersonID { get; set; }
         public string? Code { get; set; }
         public string? UserLogin { get; set; }
-        public string? Password { get; set; }
+        public string? UserPassword { get; set; }
         public string? ConfirmPassword { get; set; }
 
         public int UserAccessLevel { get; set; }

@@ -15,7 +15,7 @@ export interface UserCreateDTO {
     globalPersonID?: number | null;
     code?: string | null;
     userLogin?: string | null;
-    password?: string | null;
+    userPassword?: string | null;
     confirmPassword?: string | null;
     userAccessLevel?: number;
     userAccountState?: boolean;

@@ -34,11 +34,16 @@ namespace Infrastructure.Stores.Security
 
             if (user.IsConnected)
             {
-                //user.UserPassword = "12345678";
+                if (user.UserPassword == null)
+                {
+                    user.UserPassword = "12345678";
+                }
+
                 if (user.UserPassword != null)
                 {
                     user.UserPassword = _passwordHasher.HashPassword(user, user.UserPassword);
                 }
+               
             }
 
             /*if (user.UserPassword != null)

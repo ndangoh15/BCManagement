@@ -20,32 +20,34 @@ export class CandidateSearchComponent {
   private gridApi!: GridApi;
 
   columnDefs: ColDef[] = [
-    { field: 'candidateNumber', headerName: 'CIN', width: 150 },
-    { field: 'candidateName', headerName: 'Candidate Name', flex: 1 },
-    { field: 'centreCode', headerName: 'Centre', width: 120 },
-    { field: 'examCode', headerName: 'Exam', width: 120 },
-    { field: 'session', headerName: 'Session', width: 100 },
-    {
-      headerName: 'Document',
-      cellRenderer: (params: any) => {
-        const button = document.createElement('button');
-        button.innerText = 'View';
-        button.classList.add('view-btn');
-
-        button.addEventListener('click', () => {
-          this.openPdf(params.data.id);
-        });
-
-        return button;
-      }
+  { field: 'candidateNumber', headerName: 'CIN', width: 150 },
+  { field: 'candidateName', headerName: 'Candidate Name', flex: 1 },
+  { field: 'centreCode', headerName: 'Centre', width: 120 },
+  { field: 'examCode', headerName: 'Exam', width: 120 },
+  { field: 'session', headerName: 'Session', width: 100 },
+  {
+    headerName: 'Document',
+    valueGetter: () => 'View',
+    cellStyle: {
+      color: '#5b3cc4',
+      fontWeight: '600',
+      cursor: 'pointer',
+      textAlign: 'center'
     }
+  }
+];
 
-  ];
+rowData: any[] = [];
+  quickFilterText = '';
 
-  defaultColDef: ColDef = {
-    sortable: true,
-    resizable: true
-  };
+  paginationPageSize = 20;
+  paginationPageSizeSelector = [10, 20, 50, 100];
+
+defaultColDef: ColDef = {
+  sortable: true,
+  resizable: true,
+  filter: true
+};
 
   constructor(private facade: CandidateDocumentsManager,
     private dialog: MatDialog) {}
@@ -72,6 +74,31 @@ openPdf(documentId: number): void {
   }
 
   search(): void {
+  if (!this.keyword || this.keyword.trim().length < 2) {
+    alert('Please enter at least 2 characters');
+    return;
+  }
+
+  const request = {
+    candidateName: this.keyword,
+    examCode: this.examCode,
+    centerNumber: this.centerNumber,
+    session: this.session,
+    page: 1,
+    pageSize: 1000 // ou ce que tu veux
+  };
+
+  this.facade.search(request).subscribe({
+    next: res => {
+      this.rowData = res.items; // ✅ ICI
+    },
+    error: err => {
+      console.error(err);
+    }
+  });
+}
+
+  /*search(): void {
      if (!this.keyword || this.keyword.trim().length < 2) {
     alert('Please enter at least 2 characters of the candidate name');
     return;
@@ -79,7 +106,7 @@ openPdf(documentId: number): void {
 
     // ✅ API AG-Grid v32
     this.gridApi.setGridOption('datasource', this.createDatasource());
-  }
+  }*/
 
   private createDatasource(): IDatasource {
     return {
@@ -101,7 +128,7 @@ openPdf(documentId: number): void {
 
         this.facade.search(request).subscribe({
           next: res => {
-            // ✅ Infinite Row Model callback
+            //  Infinite Row Model callback
             params.successCallback(res.items, res.totalCount);
           },
           error: () => {
@@ -110,5 +137,23 @@ openPdf(documentId: number): void {
         });
       }
     };
+  }
+
+ onCellClicked(event: any): void {
+  if (event.colDef.headerName === 'Document') {
+    this.openPdf(event.data.id);
+  }
+}
+onQuickFilter(event: any): void {
+  this.quickFilterText = event.target.value;
+}
+
+  onQuickFilterChanged(event: Event): void {
+  const value = (event.target as HTMLInputElement).value;
+  this.gridApi.setGridOption('quickFilterText', value);
+}
+
+  themeClass(): string {
+    return 'ag-theme-alpine';
   }
 }

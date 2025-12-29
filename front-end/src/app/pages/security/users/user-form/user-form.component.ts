@@ -143,7 +143,7 @@ export class UsersFormComponent implements OnInit, OnChanges {
       profileID: this.form['profileID'].value,
       sexID: this.form['sexID'].value,
       isConnected: this.form['isConnected'].value,
-      password: this.form['password'].value,
+      userPassword: this.form['password'].value,
       confirmPassword: this.form['confirmPassword'].value,
       branchID: this.form['branchID'].value,
       userAccountState: true
